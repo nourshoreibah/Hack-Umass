@@ -35,5 +35,4 @@ resource "aws_db_instance" "skilltradeDB" {
   publicly_accessible    = true
   skip_final_snapshot    = true
   vpc_security_group_ids = [aws_security_group.rds_sg.id] # Attach the security group
-  superuser_reserved_connections = 10
 }

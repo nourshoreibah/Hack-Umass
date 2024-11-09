@@ -76,23 +76,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f0f0f0',
-  },
-  noUsersText: {
-    marginTop: 50,
-    textAlign: 'center',
-    fontSize: 18,
-    color: '#888',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   card: {
-    // Your card styling here
+    width: Dimensions.get('window').width - 40,
+    height: Dimensions.get('window').height - 200,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   profileImage: {
-    // Your profile image styling here
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    marginBottom: 20,
   },
   userName: {
-    // Your user name styling here
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
-  // Add other styles as needed
+  userAttribute: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
 });
 
 export default HomePage;

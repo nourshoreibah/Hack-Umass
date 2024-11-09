@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
-import axiosInstance from '../../api/axiosInstance';
+import axiosInstance from '../api/axiosInstance';
 
 const SwipedPage = () => {
   const [users, setUsers] = useState([]);

@@ -1,4 +1,4 @@
-import SwipedPage from './swiped';
+import SwipedPage from '../swiped';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 

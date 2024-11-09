@@ -39,17 +39,24 @@ def add_user_skill(user_id, skill_id, fluency_level):
         session.commit()
 
 # Ensure the user with email "hello@example.com" exists
-user_hello = get_or_create_user('joe@gmail.com', 'Hello User')
+user_nour = get_or_create_user('joe@gmail.com', 'Hello User')
+user_tyler = get_or_create_user('hello@example.com', 'Hello User')
 
-print(user_hello.display_name)
+print(user_nour.display_name)
 
 # Create some skills
 skill_python = get_or_create_skill('Python')
 skill_javascript = get_or_create_skill('JavaScript')
+skill_swift = get_or_create_skill('Swift')
 
 # Assign goals to the user
-add_user_goal(user_hello.user_id, skill_python.skill_id)
-add_user_goal(user_hello.user_id, skill_javascript.skill_id)
+add_user_goal(user_nour.user_id, skill_python.skill_id)
+add_user_goal(user_nour.user_id, skill_javascript.skill_id)
+add_user_skill(user_nour.user_id, skill_swift.skill_id, FluencyLevel.medium)
+
+add_user_skill(user_tyler.user_id, skill_python.skill_id, FluencyLevel.advanced)
+add_user_skill(user_tyler.user_id, skill_swift.skill_id, FluencyLevel.advanced)
+
 
 # Create other users who have the skills the user wants to learn
 user_other1 = get_or_create_user('user1@example.com', 'User One')
@@ -60,8 +67,9 @@ add_user_skill(user_other1.user_id, skill_python.skill_id, FluencyLevel.advanced
 add_user_skill(user_other1.user_id, skill_javascript.skill_id, FluencyLevel.beginner)
 add_user_skill(user_other2.user_id, skill_javascript.skill_id, FluencyLevel.medium)
 
+
 # Invoke the function to find compatible users
-compatible_users = find_compatible_users_with_skills(user_hello.user_id)
+compatible_users = find_compatible_users_with_skills(user_nour.user_id)
 
 # Print the results
 print("Compatible Users for hello@example.com:")

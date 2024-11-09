@@ -1,9 +1,10 @@
-from flask import jsonify
+from flask import jsonify, request
 from flask_restx import Resource, Namespace, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import aliased
 from sqlalchemy import and_
-from models import User, UserSkills, UserGoals, CommunityRatings, Skills, FluencyLevel, Requests, session
+from models import User, UserSkills, UserGoals, CommunityRatings, Skills, FluencyLevel, Requests, RequestStatus, session
+ 
 
 # Create namespace
 api_ns = Namespace('api', description='API operations')
@@ -163,6 +164,7 @@ class MakeRequest(Resource):
 
         # Check if the requested user exists
         requested_user = session.query(User).filter_by(user_id=requested_id).first()
+
         if not requested_user:
             return {'msg': 'Requested user not found'}, 404
 
@@ -252,6 +254,7 @@ class OutgoingRequests(Resource):
             .filter(Requests.requester_id == current_user_id)
             .all()
         )
+        
 
         # Format the response
         requests_list = [
@@ -262,6 +265,7 @@ class OutgoingRequests(Resource):
             }
             for request in outgoing_requests
         ]
+        print(requests_list)
 
         return {'requests': requests_list}
 

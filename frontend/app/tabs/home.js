@@ -66,6 +66,18 @@ const HomePage = () => {
     </View>
   );
 
+  const onSwipedRight = async (cardIndex) => {
+    const user = users[cardIndex];
+    try {
+      await axiosInstance.post('/users/send_invite', {
+        requested_id: user.user_id,
+      });
+      console.log(`Invite sent to user ID: ${user.user_id}`);
+    } catch (error) {
+      console.error('Failed to send invite', error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {users.length > 0 ? (
@@ -73,6 +85,7 @@ const HomePage = () => {
           ref={swiperRef}
           cards={users}
           renderCard={renderCard}
+          onSwipedRight={onSwipedRight}
           onSwiped={(cardIndex) => {
             console.log('User swiped: ', users[cardIndex]);
           }}
@@ -99,27 +112,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   card: {
-    width: Dimensions.get('window').width - 60,
-    height: Dimensions.get('window').height - 250,
+    width: Dimensions.get('window').width - 40,
+    height: Dimensions.get('window').height - 300,
     backgroundColor: 'white',
-    borderRadius: 15,
+    borderRadius: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
     elevation: 5,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     marginBottom: 20,
   },
   userName: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
   },

@@ -58,6 +58,13 @@ def find_compatible_users_with_skills(user_id):
         .subquery()
     )
 
+    # Get the skills the current user has
+    user_skill_ids = (
+        session.query(UserSkills.skill_id)
+        .filter(UserSkills.user_id == user_id)
+        .subquery()
+    )
+
     # Find other users who have these skills with their fluency levels
     other_user_skills = (
         session.query(
@@ -70,11 +77,31 @@ def find_compatible_users_with_skills(user_id):
         .subquery()
     )
 
+    # Find other users who want to learn the skills the current user has
+    other_user_goals = (
+        session.query(UserGoals.user_id)
+        .filter(UserGoals.skill_id.in_(user_skill_ids))
+        .subquery()
+    )
+
+    # Exclude users with existing outgoing or incoming requests
+    excluded_user_ids = (
+        session.query(Requests.requested_id)
+        .filter(Requests.requester_id == user_id)
+        .union(
+            session.query(Requests.requester_id)
+            .filter(Requests.requested_id == user_id)
+        )
+        .subquery()
+    )
+
     # Get user, skill details, and fluency level
     compatible_users = (
         session.query(User, Skills, other_user_skills.c.fluency_level)
         .join(other_user_skills, User.user_id == other_user_skills.c.user_id)
         .join(Skills, Skills.skill_id == other_user_skills.c.skill_id)
+        .filter(User.user_id.notin_(excluded_user_ids))
+        .filter(User.user_id.in_(other_user_goals))
         .all()
     )
 

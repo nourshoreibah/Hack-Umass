@@ -1,19 +1,32 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import { AuthContext } from '../contexts/AuthContext';
-import { Link } from 'expo-router';
+import { useRouter, Link } from 'expo-router';
 
 const RegisterScreen = () => {
   const { register } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const router = useRouter();
 
   const handleRegister = async () => {
     try {
       await register(email, password, displayName);
+      // Redirect to login screen after successful registration
+      router.replace('/login');
     } catch (error) {
-      alert('Registration failed');
+      console.error('Registration error:', error);
+      if (error.response) {
+        // Server responded with a status code outside the range of 2xx
+        alert(`Registration failed: ${error.response.data.message}`);
+      } else if (error.request) {
+        // Request was made but no response was received
+        alert('Registration failed: No response from server. Please try again later.');
+      } else {
+        // Something happened in setting up the request
+        alert(`Registration failed: ${error.message}`);
+      }
     }
   };
 

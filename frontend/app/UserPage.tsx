@@ -1,7 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 
-const UserPage = ({ user }) => {
+interface User {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  profilePicture: string;
+}
+
+const UserPage: React.FC<{ user?: User }> = ({ user }) => {
   // Example user object; replace this with props or fetched data
   const exampleUser = {
     name: 'John Doe',

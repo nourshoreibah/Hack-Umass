@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { View, Text, StyleSheet, FlatList, Image, Button } from 'react-native';
 import axiosInstance from '../api/axiosInstance';
+import { AuthContext } from '../contexts/AuthContext';
+
 
 const SwipedPage = () => {
   const [users, setUsers] = useState([]);
+  const { logout } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchSwipedUsers = async () => {

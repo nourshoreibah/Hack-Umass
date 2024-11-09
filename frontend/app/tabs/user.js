@@ -41,7 +41,26 @@ const UserPage = () => {
 };
 
 const styles = StyleSheet.create({
-  // ...styles here
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 20,
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 20,
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  userAttribute: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
 });
 
 export default UserPage;

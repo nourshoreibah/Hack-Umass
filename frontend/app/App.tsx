@@ -32,12 +32,9 @@ const Tab = createBottomTabNavigator();
 
 export default function App() {
   return (
-    <Tab.Navigator initialRouteName="Home">
+    <Tab.Navigator initialRouteName="User">
       <Tab.Screen name="Home" component={HomePage} options={{ tabBarLabel: 'Home' }} />
-      <Tab.Screen name="Sent Invites" component={
-        <Tab.Navigator initialRouteName="sentInvites">
-        <Tab.Screen name="sentInvites" component={() => <SwipedPage users={users} />} options={{ tabBarLabel: 'Sent Invites' }}} options={{ tabBarLabel: 'Invites' }} />
-        
+      <Tab.Screen name="Sent Invites" component={() => <SwipedPage users={users} />} options={{ tabBarLabel: 'Sent Invites' }} />
       <Tab.Screen name="User" component={UserPage} options={{ tabBarLabel: 'User' }} />
     </Tab.Navigator>
   );

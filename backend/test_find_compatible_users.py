@@ -1,6 +1,6 @@
 # test_find_compatible_users.py
 
-from models import User, UserSkills, UserGoals, Skills, FluencyLevel, session
+from models import User, UserSkills, UserGoals, Skills, FluencyLevel, Requests, session
 from user_routes import find_compatible_users_with_skills
 
 # Helper functions to avoid duplicate entries
@@ -38,9 +38,16 @@ def add_user_skill(user_id, skill_id, fluency_level):
         session.add(user_skill)
         session.commit()
 
+        
+
 # Ensure the user with email "hello@example.com" exists
 user_nour = get_or_create_user('joe@gmail.com', 'Hello User')
 user_tyler = get_or_create_user('hello@example.com', 'Hello User')
+
+# Delete all requests sent by user_tyler
+session.query(Requests).filter_by(requester_id=user_tyler.user_id).delete()
+session.query(Requests).filter_by(requester_id=user_nour.user_id).delete()
+session.commit()
 
 print(user_nour.display_name)
 
@@ -55,7 +62,7 @@ add_user_goal(user_nour.user_id, skill_javascript.skill_id)
 add_user_skill(user_nour.user_id, skill_swift.skill_id, FluencyLevel.medium)
 
 add_user_skill(user_tyler.user_id, skill_python.skill_id, FluencyLevel.advanced)
-add_user_skill(user_tyler.user_id, skill_swift.skill_id, FluencyLevel.advanced)
+add_user_goal(user_tyler.user_id, skill_swift.skill_id)
 
 
 # Create other users who have the skills the user wants to learn

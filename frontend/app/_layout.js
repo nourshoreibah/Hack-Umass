@@ -1,11 +1,41 @@
 import { Stack, useRouter } from 'expo-router';
 import { AuthProvider, AuthContext } from '../contexts/AuthContext';
 import React, { useEffect, useContext } from 'react';
+import Tile from './tile';
+import SkillsSelection from './tabs/SkillsSelection';
 
 export default function RootLayout() {
+
+
+
+
+  const CodingLanguage = {
+    JAVASCRIPT: "JavaScript",
+    PYTHON: "Python",
+    JAVA: "Java",
+    CSHARP: "C#",
+    CCPP: "C/C++",
+    PHP: "PHP",
+    R: "R",
+    TYPESCRIPT: "TypeScript",
+    SWIFT: "Swift",
+    GOLANG: "Go (Golang)",
+    RUBY: "Ruby",
+    MATLAB: "MATLAB",
+    KOTLIN: "Kotlin",
+    RUST: "Rust",
+    PERL: "Perl",
+    SCALA: "Scala",
+    DART: "Dart",
+    LUA: "Lua",
+    OBJECTIVE_C: "Objective-C",
+    SHELL: "Shell (Bash)"
+  };
+
   return (
     <AuthProvider>
       <Main />
+      <SkillsSelection languages={CodingLanguage}/>
     </AuthProvider>
   );
 }

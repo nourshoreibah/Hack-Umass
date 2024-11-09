@@ -8,7 +8,7 @@ export const SwipedPage = () => {
   useEffect(() => {
     const fetchSwipedUsers = async () => {
       try {
-        const response = await axiosInstance.get('/swiped-users');
+        const response = await axiosInstance.get('/api/outgoing-requests');
         setUsers(response.data);
       } catch (error) {
         console.error('Failed to fetch swiped users', error);
@@ -46,7 +46,7 @@ export const ReceivedInvitesPage = () => {
   useEffect(() => {
     const fetchReceivedInvites = async () => {
       try {
-        const response = await axiosInstance.get('/received-invites');
+        const response = await axiosInstance.get('/incoming-requests');
         setInvites(response.data);
       } catch (error) {
         console.error('Failed to fetch received invites', error);

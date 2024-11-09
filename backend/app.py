@@ -17,7 +17,7 @@ load_dotenv()
 
 # Initialize the Flask application
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}, allow_headers="*")
+    CORS(app, resources={r"/*": {"origins": "*", "supports_credentials": True, "allow_headers": ["Content-Type", "Authorization"]}})
 
 
 # Configure JWT

@@ -12,7 +12,7 @@ const HomePage = () => {
     const fetchUsers = async () => {
       try {
         const response = await axiosInstance.get('/api/compatible_users');
-        setUsers(response.data);
+        setUsers(response.data.users || []); // Ensure users is an array
       } catch (error) {
         console.error('Failed to fetch users', error);
       }
@@ -25,7 +25,7 @@ const HomePage = () => {
     React.useCallback(() => {
       if (Platform.OS === 'web') {
         const handleKeyDown = (event) => {
-          if (swiperRef != null && swiperRef.current != null) {
+          if (swiperRef.current) {
             if (event.key === 'ArrowLeft') {
               swiperRef.current.swipeLeft();
             } else if (event.key === 'ArrowRight') {
@@ -45,73 +45,54 @@ const HomePage = () => {
 
   return (
     <View style={styles.container}>
-      <Swiper
-        ref={swiperRef}
-        cards={users}
-        renderCard={(user) => (
-          <View style={styles.card}>
-            <Image source={{ uri: "https://i.imgur.com/6cOCsb0.png" }} style={styles.profileImage} />
-            {/* <Text style={styles.userName}>{user.display_name}</Text> */}
-            {/* <Text style={styles.userAttribute}>Email: {user.email}</Text> */}
-          </View>
-        )}
-        onSwipedRight={(cardIndex) => {
-          // Add user to liked users
-          console.log('User swiped: ', users[cardIndex]);
-        }}
-        onSwipedLeft={(cardIndex) => {
-          // move to back of queue
-          console.log('User not swiped: ', users[cardIndex]);
-          users.push(users[cardIndex]);
-        }}
-        onSwipedAll={() => {
-          // swipe!
-          console.log('All users swiped');
-        }}
-        cardIndex={0}
-        backgroundColor={'#f0f0f0'}
-        stackSize={3}
-      />
+      {users.length > 0 ? (
+        <Swiper
+          ref={swiperRef}
+          cards={users}
+          renderCard={(user) => (
+            <View style={styles.card}>
+              <Image source={{ uri: user.profilePicture }} style={styles.profileImage} />
+              <Text style={styles.userName}>{user.display_name}</Text>
+              {/* Render additional user information as needed */}
+            </View>
+          )}
+          onSwiped={(cardIndex) => {
+            console.log('User swiped: ', users[cardIndex]);
+          }}
+          onSwipedAll={() => {
+            console.log('All users swiped');
+          }}
+          cardIndex={0}
+          backgroundColor="#f0f0f0"
+        />
+      ) : (
+        <Text style={styles.noUsersText}>No compatible users found.</Text>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  // ...styles here
   container: {
     flex: 1,
     backgroundColor: '#f0f0f0',
-    justifyContent: 'center',
-    alignItems: 'center',
+  },
+  noUsersText: {
+    marginTop: 50,
+    textAlign: 'center',
+    fontSize: 18,
+    color: '#888',
   },
   card: {
-    width: Dimensions.get('window').width - 40,
-    height: Dimensions.get('window').height - 200,
-    backgroundColor: 'white',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
+    // Your card styling here
   },
   profileImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    marginBottom: 20,
+    // Your profile image styling here
   },
   userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    // Your user name styling here
   },
-  userAttribute: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
+  // Add other styles as needed
 });
 
 export default HomePage;

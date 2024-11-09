@@ -29,12 +29,30 @@ import { users } from './HomePage';
 // );
 
 const Tab = createBottomTabNavigator();
+const InviteTab = createBottomTabNavigator();
+
+const sentInvites = () => (
+  <SwipedPage users={users} />
+);
+
+const recievedInvites = () => (
+  <SwipedPage users={users} />
+);
+
+function InviteNavigator() {
+  return (
+    <InviteTab.Navigator>
+      <InviteTab.Screen name="Sent Invites" children={sentInvites} />
+      <InviteTab.Screen name="Recieved Invites" children={recievedInvites} />
+    </InviteTab.Navigator>
+  )
+}
 
 export default function App() {
   return (
     <Tab.Navigator initialRouteName="User">
       <Tab.Screen name="Home" component={HomePage} options={{ tabBarLabel: 'Home' }} />
-      <Tab.Screen name="Sent Invites" component={() => <SwipedPage users={users} />} options={{ tabBarLabel: 'Sent Invites' }} />
+      <Tab.Screen name="Sent Invites" component={InviteNavigator} options={{ tabBarLabel: 'Invites', headerShown: false }} />
       <Tab.Screen name="User" component={UserPage} options={{ tabBarLabel: 'User' }} />
     </Tab.Navigator>
   );

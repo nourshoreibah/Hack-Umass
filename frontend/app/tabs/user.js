@@ -10,7 +10,7 @@ const UserPage = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axiosInstance.get('/current_user');
+        const response = await axiosInstance.get('/api/current_user');
         setUser(response.data);
       } catch (error) {
         console.error('Failed to fetch user data', error);
@@ -31,10 +31,7 @@ const UserPage = () => {
   return (
     <View style={styles.container}>
       <Image source={{ uri: user.profilePicture }} style={styles.profileImage} />
-      <Text style={styles.userName}>{user.name}</Text>
-      <Text style={styles.userAttribute}>Email: {user.email}</Text>
-      <Text style={styles.userAttribute}>Phone: {user.phone}</Text>
-      <Text style={styles.userAttribute}>Address: {user.address}</Text>
+      <Text style={styles.userName}>{user.display_name}</Text>
       <Button title="Logout" onPress={logout} />
     </View>
   );

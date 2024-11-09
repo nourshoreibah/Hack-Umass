@@ -2,3 +2,6 @@ terraform/.terraform
 terraform/terraform.tfstate
 terraform/.terraform.lock.hcl
 .env
+.terraform.tfstate.lock.info
+terraform.tfstate.backup
+env

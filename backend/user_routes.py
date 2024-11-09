@@ -114,6 +114,8 @@ class CompatibleUsers(Resource):
         """Get compatible users along with matching skills and fluency level"""
         current_user_id = get_jwt_identity()
         users = find_compatible_users_with_skills(current_user_id)
+        if not users:
+            return {'msg': 'No compatible users found'}, 404
         return {'users': users}
 
 # Add namespace to API

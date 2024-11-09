@@ -97,7 +97,9 @@ class Login(Resource):
             return {"msg": "Bad email or password"}, 401
 
         # Create JWT token
-        access_token = create_access_token(identity=email)
+        # Example when creating JWT token
+        access_token = create_access_token(identity=user.user_id)
+
         return {"access_token": access_token}
 
 # Protected route

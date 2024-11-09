@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, Button } from 'react-native';
 import axiosInstance from '../api/axiosInstance';
 
 const SwipedPage = () => {
@@ -20,7 +20,7 @@ const SwipedPage = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Swiped Users</Text>
+      <Text style={styles.title}>Outgoing Requests</Text>
       <FlatList
         data={users}
         keyExtractor={(item, index) => index.toString()}
@@ -40,8 +40,67 @@ const SwipedPage = () => {
   );
 };
 
+const ReceivedInvitesPage = () => {
+  const [invites, setInvites] = useState([]);
+
+  useEffect(() => {
+    const fetchReceivedInvites = async () => {
+      try {
+        const response = await axiosInstance.get('/received-invites');
+        setInvites(response.data);
+      } catch (error) {
+        console.error('Failed to fetch received invites', error);
+      }
+    };
+
+    fetchReceivedInvites();
+  }, []);
+
+  const handleAccept = async (inviteId) => {
+    try {
+      await axiosInstance.post(`/accept-invite/${inviteId}`);
+      setInvites(invites.filter(invite => invite.id !== inviteId));
+    } catch (error) {
+      console.error('Failed to accept invite', error);
+    }
+  };
+
+  const handleReject = async (inviteId) => {
+    try {
+      await axiosInstance.post(`/reject-invite/${inviteId}`);
+      setInvites(invites.filter(invite => invite.id !== inviteId));
+    } catch (error) {
+      console.error('Failed to reject invite', error);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Incoming Requests</Text>
+      <FlatList
+        data={invites}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.userCard}>
+            <Image source={{ uri: item.profilePicture }} style={styles.profileImage} />
+            <View style={styles.userInfo}>
+              <Text style={styles.userName}>{item.name}</Text>
+              <Text style={styles.userAttribute}>Email: {item.email}</Text>
+              <Text style={styles.userAttribute}>Phone: {item.phone}</Text>
+              <Text style={styles.userAttribute}>Address: {item.address}</Text>
+              <View style={styles.buttonContainer}>
+                <Button title="Accept" onPress={() => handleAccept(item.id)} />
+                <Button title="Reject" onPress={() => handleReject(item.id)} />
+              </View>
+            </View>
+          </View>
+        )}
+      />
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
-  // ...styles here
   container: {
     flex: 1,
     padding: 20,
@@ -81,6 +140,11 @@ const styles = StyleSheet.create({
   userAttribute: {
     fontSize: 14,
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
 });
 
-export default SwipedPage;
+export { SwipedPage, ReceivedInvitesPage };

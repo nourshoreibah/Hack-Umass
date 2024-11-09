@@ -11,7 +11,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axiosInstance.get('/users');
+        const response = await axiosInstance.get('/api/compatible_users');
         setUsers(response.data);
       } catch (error) {
         console.error('Failed to fetch users', error);
@@ -51,16 +51,21 @@ const HomePage = () => {
         renderCard={(user) => (
           <View style={styles.card}>
             <Image source={{ uri: "https://i.imgur.com/6cOCsb0.png" }} style={styles.profileImage} />
-            <Text style={styles.userName}>{user.name}</Text>
-            <Text style={styles.userAttribute}>Email: {user.email}</Text>
-            <Text style={styles.userAttribute}>Phone: {user.phone}</Text>
-            <Text style={styles.userAttribute}>Address: {user.address}</Text>
+            {/* <Text style={styles.userName}>{user.display_name}</Text> */}
+            {/* <Text style={styles.userAttribute}>Email: {user.email}</Text> */}
           </View>
         )}
-        onSwiped={(cardIndex) => {
+        onSwipedRight={(cardIndex) => {
+          // Add user to liked users
           console.log('User swiped: ', users[cardIndex]);
         }}
+        onSwipedLeft={(cardIndex) => {
+          // move to back of queue
+          console.log('User not swiped: ', users[cardIndex]);
+          users.push(users[cardIndex]);
+        }}
         onSwipedAll={() => {
+          // swipe!
           console.log('All users swiped');
         }}
         cardIndex={0}
@@ -73,6 +78,40 @@ const HomePage = () => {
 
 const styles = StyleSheet.create({
   // ...styles here
+  container: {
+    flex: 1,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
+    width: Dimensions.get('window').width - 40,
+    height: Dimensions.get('window').height - 200,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    marginBottom: 20,
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  userAttribute: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
 });
 
 export default HomePage;

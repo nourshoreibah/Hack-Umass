@@ -42,6 +42,45 @@ const SwipedPage = () => {
 
 const styles = StyleSheet.create({
   // ...styles here
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f0f0f0',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  userCard: {
+    flexDirection: 'row',
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
+  },
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 10,
+  },
+  userInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  userAttribute: {
+    fontSize: 14,
+  },
 });
 
 export default SwipedPage;

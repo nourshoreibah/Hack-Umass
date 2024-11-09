@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, Button } from 'react-native';
 import axiosInstance from '../api/axiosInstance';
 
-const SwipedPage = () => {
+export const SwipedPage = () => {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ const SwipedPage = () => {
   );
 };
 
-const ReceivedInvitesPage = () => {
+export const ReceivedInvitesPage = () => {
   const [invites, setInvites] = useState([]);
 
   useEffect(() => {
@@ -146,5 +146,3 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
-
-export { SwipedPage, ReceivedInvitesPage };

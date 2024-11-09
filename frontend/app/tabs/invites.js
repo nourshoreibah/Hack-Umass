@@ -1,4 +1,4 @@
-import SwipedPage, { ReceivedInvitesPage } from '../swiped';
+import {SwipedPage, ReceivedInvitesPage } from '../swiped';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 

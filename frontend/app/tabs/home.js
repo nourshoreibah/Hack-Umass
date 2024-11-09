@@ -7,6 +7,7 @@ import axiosInstance from '../../api/axiosInstance';
 const HomePage = () => {
   const swiperRef = useRef(null);
   const [users, setUsers] = useState([]);
+  const [noMoreUsers, setNoMoreUsers] = useState(false); // Track if all users are swiped
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -43,29 +44,28 @@ const HomePage = () => {
     }, [])
   );
 
+  // Separate function for rendering each card
   const renderCard = (user) => (
-    <View style={styles.card}>
-      {/* Display user's profile picture */}
-      <Image source={{ uri: user.profilePicture }} style={styles.profileImage} />
-
-      {/* Display user's display name */}
-      <Text style={styles.userName}>{user.display_name}</Text>
-
-      {/* Display user's skills and fluency levels */}
-      {user.matching_skills && user.matching_skills.length > 0 ? (
-        <View style={styles.skillsContainer}>
-          {user.matching_skills.map((skill, index) => (
-            <Text key={index} style={styles.skillText}>
-              {skill.skill_name} - {skill.fluency_level}
-            </Text>
-          ))}
-        </View>
-      ) : (
-        <Text style={styles.noSkillsText}>No matching skills</Text>
-      )}
-    </View>
+    user ? (
+      <View style={styles.card}>
+        <Image source={{ uri: user.profilePicture }} style={styles.profileImage} />
+        <Text style={styles.userName}>{user.display_name}</Text>
+        {user.matching_skills && user.matching_skills.length > 0 ? (
+          <View style={styles.skillsContainer}>
+            {user.matching_skills.map((skill, index) => (
+              <Text key={index} style={styles.skillText}>
+                {skill.skill_name} - {skill.fluency_level}
+              </Text>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.noSkillsText}>No matching skills</Text>
+        )}
+      </View>
+    ) : null
   );
 
+  // Swiped right handler
   const onSwipedRight = async (cardIndex) => {
     const user = users[cardIndex];
     try {
@@ -78,6 +78,24 @@ const HomePage = () => {
     }
   };
 
+  // Swiped left handler
+  const onSwipedLeft = (cardIndex) => {
+    if (users[cardIndex]) {
+      users.push(users[cardIndex]);
+    }
+  };
+
+  // Swiped handler
+  const onSwiped = (cardIndex) => {
+    console.log('User swiped: ', users[cardIndex]);
+  };
+
+  // Swiped all handler
+  const onSwipedAll = () => {
+    console.log('All users swiped');
+    setNoMoreUsers(true);
+  };
+
   return (
     <View style={styles.container}>
       {users.length > 0 ? (
@@ -85,16 +103,10 @@ const HomePage = () => {
           ref={swiperRef}
           cards={users}
           renderCard={renderCard}
-          onSwipedRight={onSwipedRight}
-          onSwipedLeft={(cardIndex) => {
-            users.push(users[cardIndex]);
-          }}
-          onSwiped={(cardIndex) => {
-            console.log('User swiped: ', users[cardIndex]);
-          }}
-          onSwipedAll={() => {
-            console.log('All users swiped');
-          }}
+          onSwipedRight={onSwipedRight}  // Use the separate function
+          onSwipedLeft={onSwipedLeft}    // Use the separate function
+          onSwiped={onSwiped}            // Use the separate function
+          onSwipedAll={onSwipedAll}      // Use the separate function
           cardIndex={0}
           backgroundColor="#f0f0f0"
           stackSize={3}
@@ -102,6 +114,11 @@ const HomePage = () => {
         />
       ) : (
         <Text style={styles.noUsersText}>No compatible users found.</Text>
+      )}
+
+      {/* Text shown in the same spot after all users are swiped */}
+      {noMoreUsers && (
+        <Text style={styles.swipedText}>All users swiped</Text>
       )}
     </View>
   );
@@ -152,6 +169,12 @@ const styles = StyleSheet.create({
   },
   noUsersText: {
     marginTop: 50,
+    textAlign: 'center',
+    fontSize: 18,
+    color: '#888',
+  },
+  swipedText: {
+    position: 'absolute',  // Overlay on the swiper
     textAlign: 'center',
     fontSize: 18,
     color: '#888',

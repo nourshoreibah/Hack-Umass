@@ -57,6 +57,7 @@ user_other2 = get_or_create_user('user2@example.com', 'User Two')
 
 # Assign skills to other users
 add_user_skill(user_other1.user_id, skill_python.skill_id, FluencyLevel.advanced)
+add_user_skill(user_other1.user_id, skill_javascript.skill_id, FluencyLevel.beginner)
 add_user_skill(user_other2.user_id, skill_javascript.skill_id, FluencyLevel.medium)
 
 # Invoke the function to find compatible users

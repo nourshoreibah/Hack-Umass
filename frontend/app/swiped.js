@@ -49,7 +49,7 @@ export const ReceivedInvitesPage = () => {
   useEffect(() => {
     const fetchReceivedInvites = async () => {
       try {
-        const response = await axiosInstance.get('/incoming-requests');
+        const response = await axiosInstance.get('/api/incoming-requests');
         setInvites(response.data);
       } catch (error) {
         console.error('Failed to fetch received invites', error);

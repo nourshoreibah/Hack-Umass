@@ -69,7 +69,7 @@ const HomePage = () => {
   const onSwipedRight = async (cardIndex) => {
     const user = users[cardIndex];
     try {
-      await axiosInstance.post('/users/send_invite', {
+      await axiosInstance.post('/api/make-request', {
         requested_id: user.user_id,
       });
       console.log(`Invite sent to user ID: ${user.user_id}`);

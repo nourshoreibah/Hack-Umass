@@ -86,6 +86,9 @@ const HomePage = () => {
           cards={users}
           renderCard={renderCard}
           onSwipedRight={onSwipedRight}
+          onSwipedLeft={(cardIndex) => {
+            users.push(users[cardIndex]);
+          }}
           onSwiped={(cardIndex) => {
             console.log('User swiped: ', users[cardIndex]);
           }}

@@ -9,4 +9,4 @@ tasklist /fi "WINDOWTITLE eq %Token%_frontend" | findstr "cmd" >nul 2>nul && set
 if not defined Backend if not defined Frontend goto endloop
 goto loop
 :endloop
-echo Both processes have terminated.
+echo Starting up..

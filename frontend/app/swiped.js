@@ -1,24 +1,28 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, Button } from 'react-native';
 import axiosInstance from '../api/axiosInstance';
 import { AuthContext } from '../contexts/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 
 export const SwipedPage = () => {
   const [users, setUsers] = useState([]);
 
-  useEffect(() => {
-    const fetchSwipedUsers = async () => {
-      try {
-        const response = await axiosInstance.get('/api/outgoing_requests');
-        setUsers(response.data.requests); // Access the 'requests' array from the response
-      } catch (error) {
-        console.error('Failed to fetch swiped users', error);
-      }
-    };
+  const fetchSwipedUsers = async () => {
+    try {
+      const response = await axiosInstance.get('/api/outgoing_requests');
+      setUsers(response.data.requests);
+    } catch (error) {
+      console.error('Failed to fetch swiped users', error);
+    }
+  };
 
-    fetchSwipedUsers();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchSwipedUsers();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
@@ -39,18 +43,20 @@ export const SwipedPage = () => {
 export const ReceivedInvitesPage = () => {
   const [invites, setInvites] = useState([]);
 
-  useEffect(() => {
-    const fetchReceivedInvites = async () => {
-      try {
-        const response = await axiosInstance.get('/api/incoming_requests');
-        setInvites(response.data.requests);
-      } catch (error) {
-        console.error('Failed to fetch received invites', error);
-      }
-    };
+  const fetchReceivedInvites = async () => {
+    try {
+      const response = await axiosInstance.get('/api/incoming_requests');
+      setInvites(response.data.invites);
+    } catch (error) {
+      console.error('Failed to fetch received invites', error);
+    }
+  };
 
-    fetchReceivedInvites();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchReceivedInvites();
+    }, [])
+  );
 
   const handleAccept = async (inviteId) => {
     try {
@@ -80,10 +86,7 @@ export const ReceivedInvitesPage = () => {
           <View style={styles.userCard}>
             <Image source={{ uri: item.profilePicture }} style={styles.profileImage} />
             <View style={styles.userInfo}>
-              <Text style={styles.userName}>{item.name}</Text>
-              <Text style={styles.userAttribute}>Email: {item.email}</Text>
-              <Text style={styles.userAttribute}>Phone: {item.phone}</Text>
-              <Text style={styles.userAttribute}>Address: {item.address}</Text>
+              <Text style={styles.userName}>{item.requester_display_name}</Text>
               <View style={styles.buttonContainer}>
                 <Button title="Accept" onPress={() => handleAccept(item.id)} />
                 <Button title="Reject" onPress={() => handleReject(item.id)} />

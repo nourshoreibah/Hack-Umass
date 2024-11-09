@@ -3,7 +3,7 @@ from flask_restx import Resource, Namespace, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import aliased
 from sqlalchemy import and_
-from models import User, UserSkills, UserGoals, CommunityRatings, Skills, FluencyLevel, Requests, ßsession
+from models import User, UserSkills, UserGoals, CommunityRatings, Skills, FluencyLevel, Requests, session
 
 # Create namespace
 api_ns = Namespace('api', description='API operations')

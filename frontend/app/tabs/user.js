@@ -10,7 +10,7 @@ const UserPage = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axiosInstance.get('/user');
+        const response = await axiosInstance.get('/current_user');
         setUser(response.data);
       } catch (error) {
         console.error('Failed to fetch user data', error);

@@ -105,6 +105,23 @@ class GetUser(Resource):
             return {'msg': 'User not found'}, 404
         return {'user_id': user.user_id, 'display_name': user.display_name}
 
+@api_ns.route('/current_user')
+class CurrentUser(Resource):
+    @api_ns.doc('get_current_user')
+    @api_ns.marshal_with(user_with_skills_model)  # Ensure user_model is defined
+    @jwt_required()
+    def get(self):
+        """Get the current authenticated user"""
+        current_user_id = get_jwt_identity()
+        user = session.query(User).filter_by(user_id=current_user_id).first()
+        if not user:
+            return {'msg': 'User not found'}, 404
+        return {
+            'user_id': user.user_id,
+            'display_name': user.display_name,
+          # Include other relevant fields
+        }
+
 @api_ns.route('/compatible_users')
 class CompatibleUsers(Resource):
     @api_ns.doc('get_compatible_users')

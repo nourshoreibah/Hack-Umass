@@ -16,7 +16,7 @@ const LoginScreen = () => {
       setError(null);
       await login(email, password);
       // Navigate to home on success
-      router.replace('/(tabs)');
+      router.replace('/tabs');
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {

@@ -73,7 +73,7 @@ class Register(Resource):
             return {"msg": "User with this email or display name already exists"}, 409
 
         # Hash the password and create a new user record
-        hashed_password = generate_password_hash(password)
+        hashed_password = generate_password_hash(password, method = 'pbkdf2')
         new_user = User(email=email, password_hash=hashed_password, display_name=display_name, has_logged_in = False)
 
         # Add and commit the new user to the database
@@ -94,8 +94,6 @@ class Login(Resource):
 
         # Retrieve user from database by email
         user = session.query(User).filter_by(email=email).first()
-        user.has_logged_in = True
-        session.commit()
         if not user or not check_password_hash(user.password_hash, password):
             return {"msg": "Bad email or password"}, 401
 

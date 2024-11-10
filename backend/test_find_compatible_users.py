@@ -1,7 +1,8 @@
 # test_find_compatible_users.py
 
-from models import User, UserSkills, UserGoals, Skills, FluencyLevel, Requests, session
+from models import User, UserSkills, UserGoals, Skills, FluencyLevel, Requests, session, engine
 from user_routes import find_compatible_users_with_skills
+from sqlalchemy import text
 
 # List of coding languages
 coding_languages = [
@@ -106,6 +107,10 @@ for user in compatible_users:
     print(f"User ID: {user['user_id']}, Display Name: {user['display_name']}")
     for skill in user['matching_skills']:
         print(f"  Skill ID: {skill['skill_id']}, Skill Name: {skill['skill_name']}, Fluency Level: {skill['fluency_level']}")
+
+
+
+
 
 # Close the session if necessary
 # session.close()

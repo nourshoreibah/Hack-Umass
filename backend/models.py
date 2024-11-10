@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, Enum, CheckConstraint
+from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, Enum, CheckConstraint, Boolean
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 import os
 from dotenv import load_dotenv
@@ -29,6 +29,7 @@ class User(Base):
     email = Column(String(320), nullable=False, unique=True)
     password_hash = Column(String, nullable=False)
     display_name = Column(String(100), nullable=False)
+    has_logged_in = Column(Boolean, nullable=False, default=False)
     
     # Relationships
     skills = relationship("UserSkills", back_populates="user")
@@ -83,6 +84,7 @@ class UserGoals(Base):
     __tablename__ = 'user_goals'
     user_id = Column(Integer, ForeignKey('user.user_id'), primary_key=True)
     skill_id = Column(Integer, ForeignKey('skills.skill_id'), primary_key=True)
+    level = Column(Enum(FluencyLevel))
 
     # Foreign key relationships
     user = relationship("User", back_populates="goals")
@@ -143,9 +145,6 @@ DB_NAME = os.getenv('DB_NAME')
 # Set up the connection to the AWS RDS PostgreSQL instance
 engine = create_engine(f'postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:5432/{DB_NAME}')
 
-with engine.connect() as connection:
-    connection.execute(text('DROP SCHEMA public CASCADE;'))
-    connection.execute(text('CREATE SCHEMA public;'))
 
 # Create all tables in the database
 Base.metadata.create_all(engine)

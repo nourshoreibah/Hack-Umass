@@ -26,107 +26,89 @@ compatible_users_model = api_ns.model('CompatibleUsers', {
     'users': fields.List(fields.Nested(user_with_skills_model)),
 })
 
-def find_compatible_users(user_id):
-    # Existing function remains the same
-    UserAlias = aliased(User)
-    UserSkillsAlias = aliased(UserSkills)
-    UserGoalsAlias = aliased(UserGoals)
-    CommunityRatingsAlias = aliased(CommunityRatings)
-
-    compatible_users = (
-        session.query(UserAlias)
-        .join(UserSkills, UserSkills.user_id == user_id)
-        .join(UserGoalsAlias, UserGoalsAlias.skill_id == UserSkills.skill_id)
-        .join(UserSkillsAlias, UserSkillsAlias.user_id == UserGoalsAlias.user_id)
-        .join(UserGoals, UserGoals.user_id == user_id)
-        .join(CommunityRatingsAlias, and_(
-            CommunityRatingsAlias.rater_id == user_id,
-            CommunityRatingsAlias.rated_id == UserAlias.user_id,
-            CommunityRatingsAlias.rating >= 3
-        ))
-        .filter(UserGoals.skill_id == UserSkillsAlias.skill_id)
-        .filter(UserAlias.user_id != user_id)
-        .all()
-    )
-    return compatible_users
 
 def find_compatible_users_with_skills(user_id):
-    # Get the skills the current user wants to learn
-    goal_skill_ids = (
-        session.query(UserGoals.skill_id)
-        .filter(UserGoals.user_id == user_id)
-        .subquery()
-    )
-
-    # Get the skills the current user has
-    user_skill_ids = (
-        session.query(UserSkills.skill_id)
-        .filter(UserSkills.user_id == user_id)
-        .subquery()
-    )
-
-    # Find other users who have these skills with their fluency levels
-    other_user_skills = (
-        session.query(
-            UserSkills.user_id,
-            UserSkills.skill_id,
-            UserSkills.fluency_level
+    try:
+        # Get the skills the current user wants to learn
+        goal_skill_ids = (
+            session.query(UserGoals.skill_id)
+            .filter(UserGoals.user_id == user_id)
+            .subquery()
         )
-        .filter(UserSkills.skill_id.in_(goal_skill_ids))
-        .filter(UserSkills.user_id != user_id)
-        .subquery()
-    )
 
-    # Find other users who want to learn the skills the current user has
-    other_user_goals = (
-        session.query(UserGoals.user_id)
-        .filter(UserGoals.skill_id.in_(user_skill_ids))
-        .subquery()
-    )
-
-    # Exclude users with existing outgoing or incoming requests
-    excluded_user_ids = (
-        session.query(Requests.requested_id)
-        .filter(Requests.requester_id == user_id)
-        .union(
-            session.query(Requests.requester_id)
-            .filter(Requests.requested_id == user_id)
+        # Get the skills the current user has
+        user_skill_ids = (
+            session.query(UserSkills.skill_id)
+            .filter(UserSkills.user_id == user_id)
+            .subquery()
         )
-        .subquery()
-    )
 
-     # Get user, skill details, and fluency level
-    compatible_users = (
-        session.query(
-            User,
-            Skills.skill_id.label('skill_id'),
-            Skills.skill_name.label('skill_name'),
-            other_user_skills.c.fluency_level
+        # Find other users who have these skills with their fluency levels
+        other_user_skills = (
+            session.query(
+                UserSkills.user_id,
+                UserSkills.skill_id,
+                UserSkills.fluency_level
+            )
+            .filter(UserSkills.skill_id.in_(goal_skill_ids))
+            .filter(UserSkills.user_id != user_id)
+            .subquery()
         )
-        .join(other_user_skills, User.user_id == other_user_skills.c.user_id)
-        .join(Skills, Skills.skill_id == other_user_skills.c.skill_id)
-        .filter(User.user_id.notin_(excluded_user_ids))
-        .filter(User.user_id.in_(other_user_goals))
-        .all()
-    )
 
-    # Organize data
-    users_dict = {}
-    for user, skill_id, skill_name, fluency_level in compatible_users:
-        if user.user_id not in users_dict:
-            users_dict[user.user_id] = {
-                'user_id': user.user_id,
-                'display_name': user.display_name,
-                'matching_skills': [],
-            }
-        users_dict[user.user_id]['matching_skills'].append({
-            'skill_id': skill_id,
-            'skill_name': skill_name,
-            'fluency_level': fluency_level.value  # Adjust if fluency_level is an enum
-        })
+        # Find other users who want to learn the skills the current user has
+        other_user_goals = (
+            session.query(UserGoals.user_id)
+            .filter(UserGoals.skill_id.in_(user_skill_ids))
+            .subquery()
+        )
 
-    sorted_users = sorted(users_dict.values(), key=lambda x: len(x['matching_skills']), reverse=True)
-    return sorted_users
+        # Exclude users with existing outgoing or incoming requests
+        excluded_user_ids = (
+            session.query(Requests.requested_id)
+            .filter(Requests.requester_id == user_id)
+            .union(
+                session.query(Requests.requester_id)
+                .filter(Requests.requested_id == user_id)
+            )
+            .subquery()
+        )
+
+        # Get user, skill details, and fluency level
+        compatible_users = (
+            session.query(
+                User,
+                Skills.skill_id.label('skill_id'),
+                Skills.skill_name.label('skill_name'),
+                other_user_skills.c.fluency_level
+            )
+            .join(other_user_skills, User.user_id == other_user_skills.c.user_id)
+            .join(Skills, Skills.skill_id == other_user_skills.c.skill_id)
+            .filter(User.user_id.notin_(excluded_user_ids))
+            .filter(User.user_id.in_(other_user_goals))
+            .all()
+        )
+
+        # Organize data
+        users_dict = {}
+        for user, skill_id, skill_name, fluency_level in compatible_users:
+            if user.user_id not in users_dict:
+                users_dict[user.user_id] = {
+                    'user_id': user.user_id,
+                    'display_name': user.display_name,
+                    'matching_skills': [],
+                }
+            users_dict[user.user_id]['matching_skills'].append({
+                'skill_id': skill_id,
+                'skill_name': skill_name,
+                'fluency_level': fluency_level.value  # Adjust if fluency_level is an enum
+            })
+
+        sorted_users = sorted(users_dict.values(), key=lambda x: len(x['matching_skills']), reverse=True)
+        return sorted_users
+    except Exception as e:
+        print(f"Error in find_compatible_users_with_skills: {e}")
+        session.rollback()
+        raise
 
 # Get user by id
 @api_ns.route('/user/<int:user_id>')
@@ -465,3 +447,18 @@ class RateUser(Resource):
         session.commit()
 
         return {'msg': 'User rated successfully'}, 201
+
+# submit learning skills endpoint
+@api_ns.route('/submit_learning_skills')
+class SkillsResource(Resource):
+    @api_ns.doc('submit_learning_skills')
+    @jwt_required()
+    def post(self):
+        """Add to skills"""
+        current_user_id = get_jwt_identity()
+        skils = request.get_json()
+
+    
+
+
+

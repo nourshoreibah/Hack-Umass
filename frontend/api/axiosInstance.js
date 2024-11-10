@@ -6,7 +6,7 @@ import { Alert } from 'react-native';
 import { router } from 'expo-router';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://devtrade.tech', // Ensure this matches your backend URL
+  baseURL: 'http://127.0.0.1:5000', // Ensure this matches your backend URL
 });
 
 axiosInstance.interceptors.request.use(

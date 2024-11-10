@@ -4,6 +4,8 @@ from models import User, UserSkills, UserGoals, Skills, FluencyLevel, Requests, 
 from user_routes import find_compatible_users_with_skills
 from sqlalchemy import text
 
+
+
 # List of coding languages
 coding_languages = [
     "JavaScript",
@@ -48,7 +50,7 @@ def get_or_create_user(email, display_name):
 def add_user_goal(user_id, skill_id):
     exists = session.query(UserGoals).filter_by(user_id=user_id, skill_id=skill_id).first()
     if not exists:
-        user_goal = UserGoals(user_id=user_id, skill_id=skill_id)
+        user_goal = UserGoals(user_id=user_id, skill_id=skill_id, level=FluencyLevel.beginner)
         session.add(user_goal)
         session.commit()
 
@@ -80,10 +82,13 @@ for lang in coding_languages:
     skill = get_or_create_skill(lang)
     skill_objects[lang] = skill
 
-# Assign goals to user_nour
-add_user_goal(user_nour.user_id, skill_objects['Python'].skill_id)
-add_user_goal(user_nour.user_id, skill_objects['JavaScript'].skill_id)
-add_user_skill(user_nour.user_id, skill_objects['Swift'].skill_id, FluencyLevel.medium)
+for i in range(len(coding_languages)):
+    skill = coding_languages[i]
+    if i % 2 == 0:
+        add_user_skill(user_nour.user_id, skill_objects[skill].skill_id, FluencyLevel.advanced)
+    else:
+        add_user_goal(user_nour.user_id, skill_objects[skill].skill_id)
+
 
 # Assign skills and goals to user_tyler
 add_user_skill(user_tyler.user_id, skill_objects['Python'].skill_id, FluencyLevel.advanced)

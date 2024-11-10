@@ -1,8 +1,31 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, Button } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, Button, TouchableOpacity } from 'react-native';
 import axiosInstance from '../../api/axiosInstance';
 import { useFocusEffect } from '@react-navigation/native';
 
+// StarRating component
+const StarRating = ({ rating, onChange }) => {
+  const [currentRating, setCurrentRating] = useState(rating || 0);
+
+  const handlePress = (newRating) => {
+    setCurrentRating(newRating);
+    if (onChange) {
+      onChange(newRating);
+    }
+  };
+
+  return (
+    <View style={{ flexDirection: 'row' }}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <TouchableOpacity key={star} onPress={() => handlePress(star)}>
+          <Text style={{ color: star <= currentRating ? '#FFD700' : '#ccc', fontSize: 20 }}>
+            ★
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+};
 
 export const FriendPage = () => {
   const [users, setUsers] = useState([]);
@@ -29,9 +52,25 @@ export const FriendPage = () => {
         data={users}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <View style={styles.userCard}>
-            <Text style={styles.userName}>{item.display_name}</Text>
-            <Text style={styles.userAttribute}>{item.email}</Text>
+          <View style={[styles.userCard, { flexDirection: 'row', alignItems: 'center' }]}>
+            <View style={{ flex: 1, alignItems: 'flex-start' }}>
+              <Text style={styles.userName}>{item.display_name}</Text>
+            </View>
+            <View style={{ flex: 1, alignItems: 'center' }}>
+              <Text style={styles.userAttribute}>{item.email}</Text>
+            </View>
+            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+              <StarRating
+                rating={item.rating}
+                onChange={(newRating) => {
+                  // Update the user's rating
+                  axiosInstance.post('/api/rate_user', {
+                    rated_id: item.user_id,
+                    rating: newRating,
+                  });
+                }}
+              />
+            </View>
           </View>
         )}
       />

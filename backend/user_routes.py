@@ -2,7 +2,7 @@ from flask import jsonify, request
 from flask_restx import Resource, Namespace, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import aliased
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, union_all, or_
 from models import User, UserSkills, UserGoals, CommunityRatings, Skills, FluencyLevel, Requests, RequestStatus, session
  
 
@@ -379,6 +379,8 @@ class SkillsResource(Resource):
         skills_list = [{'skill_id': skill.skill_id, 'skill_name': skill.skill_name} for skill in skills]
         return {'skills': skills_list}
     
+
+
 # Get connections
 @api_ns.route('/connections')
 class Connections(Resource):
@@ -388,16 +390,28 @@ class Connections(Resource):
         """Get all connections for the logged-in user"""
         current_user_id = get_jwt_identity()
 
-        # Get all users who have accepted requests involving the current user, whether they were the requester or requested
-        connections = (
-            session.query(User)
-            .join(Requests, or_(
-                and_(User.user_id == Requests.requested_id, Requests.requester_id == current_user_id),
-                and_(User.user_id == Requests.requester_id, Requests.requested_id == current_user_id)
-            ))
-            .filter(Requests.status == RequestStatus.accepted)
-            .all()
+        # Subquery for connections where the current user is the requester
+        connections_requester = (
+            session.query(User.user_id, User.display_name, User.email)
+            .join(Requests, User.user_id == Requests.requested_id)
+            .filter(
+                Requests.requester_id == current_user_id,
+                Requests.status == RequestStatus.accepted
+            )
         )
+
+        # Subquery for connections where the current user is the requested
+        connections_requested = (
+            session.query(User.user_id, User.display_name, User.email)
+            .join(Requests, User.user_id == Requests.requester_id)
+            .filter(
+                Requests.requested_id == current_user_id,
+                Requests.status == RequestStatus.accepted
+            )
+        )
+
+        # Combine the two queries
+        combined_connections = connections_requester.union_all(connections_requested).all()
 
         # Format the response
         connections_list = [
@@ -406,10 +420,11 @@ class Connections(Resource):
                 'display_name': user.display_name,
                 'email': user.email,
             }
-            for user in connections
+            for user in combined_connections
         ]
 
         return {'connections': connections_list}
+
     
 # Rate user endpoint
 @api_ns.route('/rate_user')

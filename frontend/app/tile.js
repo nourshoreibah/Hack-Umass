@@ -1,7 +1,3 @@
-// Create a tile component that is a white, rounded square. It has an image in it
-// and a name below the image. Assume there is no border for the image. Make the button
-// clickable and track that the button as been clicked, and that check can be outputted
-// somehow.
 
 // tile.js
 import React, { useState } from 'react';

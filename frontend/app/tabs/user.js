@@ -2,10 +2,12 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, StyleSheet, Image, Button } from 'react-native';
 import axiosInstance from '../../api/axiosInstance';
 import { AuthContext } from '../../contexts/AuthContext';
+import { Stack, useRouter } from 'expo-router';
 
 const UserPage = () => {
   const [user, setUser] = useState(null);
   const { logout } = useContext(AuthContext);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -28,11 +30,45 @@ const UserPage = () => {
     );
   }
 
+  const CodingLanguage = {
+    JAVASCRIPT: "JavaScript",
+    PYTHON: "Python",
+    JAVA: "Java",
+    CSHARP: "C#",
+    CCPP: "C/C++",
+    PHP: "PHP",
+    R: "R",
+    TYPESCRIPT: "TypeScript",
+    SWIFT: "Swift",
+    GOLANG: "Go (Golang)",
+    RUBY: "Ruby",
+    MATLAB: "MATLAB",
+    KOTLIN: "Kotlin",
+    RUST: "Rust",
+    PERL: "Perl",
+    SCALA: "Scala",
+    DART: "Dart",
+    LUA: "Lua",
+    OBJECTIVE_C: "Objective-C",
+    SHELL: "Shell (Bash)"
+  };
+
+  // a function to change the router endpoint to the skills selection page
+  const editSkills = () => {
+    router.replace({
+      pathname: '/tabs/SkillsSelection',
+      params: { 
+        languages: CodingLanguage
+      }
+    });
+  };
+
   return (
     <View style={styles.container}>
       <Image source={{ uri: user.profilePicture }} style={styles.profileImage} />
       <Text style={styles.userName}>{user.display_name}</Text>
       <Button title="Logout" onPress={logout} />
+      <Button title="Edit Skills" onPress={editSkills} />
     </View>
   );
 };

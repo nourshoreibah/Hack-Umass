@@ -46,7 +46,7 @@ export const ReceivedInvitesPage = () => {
   const fetchReceivedInvites = async () => {
     try {
       const response = await axiosInstance.get('/api/incoming_requests');
-      setInvites(response.data.invites);
+      setInvites(response.data.requests);
     } catch (error) {
       console.error('Failed to fetch received invites', error);
     }
@@ -58,19 +58,21 @@ export const ReceivedInvitesPage = () => {
     }, [])
   );
 
-  const handleAccept = async (inviteId) => {
+  const handleAccept = async (requesterId) => {
     try {
-      await axiosInstance.post(`/accept_invite/${inviteId}`);
-      setInvites(invites.filter(invite => invite.id !== inviteId));
+      await axiosInstance.post('/api/accept_invite', { requester_id: requesterId });
+      setInvites(invites.filter(invite => invite.requester_id !== requesterId));
+      fetchReceivedInvites();
     } catch (error) {
       console.error('Failed to accept invite', error);
     }
   };
-
-  const handleReject = async (inviteId) => {
+  
+  const handleReject = async (requesterId) => {
     try {
-      await axiosInstance.post(`/reject_invite/${inviteId}`);
-      setInvites(invites.filter(invite => invite.id !== inviteId));
+      await axiosInstance.post('/api/decline_invite', { requester_id: requesterId });
+      setInvites(invites.filter(invite => invite.requester_id !== requesterId));
+      fetchReceivedInvites();
     } catch (error) {
       console.error('Failed to reject invite', error);
     }
@@ -88,8 +90,8 @@ export const ReceivedInvitesPage = () => {
             <View style={styles.userInfo}>
               <Text style={styles.userName}>{item.requester_display_name}</Text>
               <View style={styles.buttonContainer}>
-                <Button title="Accept" onPress={() => handleAccept(item.id)} />
-                <Button title="Reject" onPress={() => handleReject(item.id)} />
+                <Button title="Accept" onPress={() => handleAccept(item.requester_id)} />
+                <Button title="Reject" onPress={() => handleReject(item.requester_id)} />
               </View>
             </View>
           </View>

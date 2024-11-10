@@ -2,9 +2,11 @@ from flask import jsonify, request
 from flask_restx import Resource, Namespace, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import aliased
-from sqlalchemy import and_, union_all, or_
-from models import User, UserSkills, UserGoals, CommunityRatings, Skills, FluencyLevel, Requests, RequestStatus, session
+from sqlalchemy import and_, union_all, or_, func
+from models import User, UserSkills, UserGoals, CommunityRatings, Skills, FluencyLevel, Requests, RequestStatus, session, Session
 from contextlib import contextmanager
+
+
 
 @contextmanager
 def session_scope():
@@ -43,82 +45,119 @@ compatible_users_model = api_ns.model('CompatibleUsers', {
 
 def find_compatible_users_with_skills(user_id):
     try:
-        # Get the skills the current user wants to learn
-        goal_skill_ids = (
-            session.query(UserGoals.skill_id)
-            .filter(UserGoals.user_id == user_id)
-            .subquery()
-        )
+        with session_scope() as session:
+            # Subqueries for user's goals and skills
+            user_goals_sub = session.query(UserGoals.skill_id).filter(UserGoals.user_id == user_id).subquery()
+            user_skills_sub = session.query(UserSkills.skill_id).filter(UserSkills.user_id == user_id).subquery()
 
-        # Get the skills the current user has
-        user_skill_ids = (
-            session.query(UserSkills.skill_id)
-            .filter(UserSkills.user_id == user_id)
-            .subquery()
-        )
-
-        # Find other users who have these skills with their fluency levels
-        other_user_skills = (
-            session.query(
-                UserSkills.user_id,
-                UserSkills.skill_id,
-                UserSkills.fluency_level
+            # Users who can teach me (have skills I want to learn)
+            users_can_teach_me = (
+                session.query(
+                    UserSkills.user_id.label('other_user_id'),
+                    func.count(UserSkills.skill_id).label('skills_can_teach_me')
+                )
+                .filter(UserSkills.skill_id.in_(user_goals_sub))
+                .filter(UserSkills.user_id != user_id)
+                .group_by(UserSkills.user_id)
+                .subquery()
             )
-            .filter(UserSkills.skill_id.in_(goal_skill_ids))
-            .filter(UserSkills.user_id != user_id)
-            .subquery()
-        )
 
-        # Find other users who want to learn the skills the current user has
-        other_user_goals = (
-            session.query(UserGoals.user_id)
-            .filter(UserGoals.skill_id.in_(user_skill_ids))
-            .subquery()
-        )
-
-        # Exclude users with existing outgoing or incoming requests
-        excluded_user_ids = (
-            session.query(Requests.requested_id)
-            .filter(Requests.requester_id == user_id)
-            .union(
-                session.query(Requests.requester_id)
-                .filter(Requests.requested_id == user_id)
+            # Users who want to learn from me (have goals in my skills)
+            users_want_to_learn_from_me = (
+                session.query(
+                    UserGoals.user_id.label('other_user_id'),
+                    func.count(UserGoals.skill_id).label('skills_want_to_learn_from_me')
+                )
+                .filter(UserGoals.skill_id.in_(user_skills_sub))
+                .filter(UserGoals.user_id != user_id)
+                .group_by(UserGoals.user_id)
+                .subquery()
             )
-            .subquery()
-        )
 
-        # Get user, skill details, and fluency level
-        compatible_users = (
-            session.query(
-                User,
-                Skills.skill_id.label('skill_id'),
-                Skills.skill_name.label('skill_name'),
-                other_user_skills.c.fluency_level
+            # Average community ratings
+            user_ratings = (
+                session.query(
+                    CommunityRatings.rated_id.label('other_user_id'),
+                    func.avg(CommunityRatings.rating).label('average_rating')
+                )
+                .group_by(CommunityRatings.rated_id)
+                .subquery()
             )
-            .join(other_user_skills, User.user_id == other_user_skills.c.user_id)
-            .join(Skills, Skills.skill_id == other_user_skills.c.skill_id)
-            .filter(User.user_id.notin_(excluded_user_ids))
-            .filter(User.user_id.in_(other_user_goals))
-            .all()
-        )
 
-        # Organize data
-        users_dict = {}
-        for user, skill_id, skill_name, fluency_level in compatible_users:
-            if user.user_id not in users_dict:
-                users_dict[user.user_id] = {
+            # Exclude users with existing outgoing or incoming requests
+            excluded_user_ids = (
+                session.query(Requests.requested_id)
+                .filter(Requests.requester_id == user_id)
+                .union(
+                    session.query(Requests.requester_id)
+                    .filter(Requests.requested_id == user_id)
+                )
+                .subquery()
+            )
+
+            # Combine all users with their respective counts and ratings
+            all_users = (
+                session.query(
+                    User.user_id,
+                    User.display_name,
+                    func.coalesce(users_can_teach_me.c.skills_can_teach_me, 0).label('skills_can_teach_me'),
+                    func.coalesce(users_want_to_learn_from_me.c.skills_want_to_learn_from_me, 0).label('skills_want_to_learn_from_me'),
+                    func.coalesce(user_ratings.c.average_rating, 0).label('average_rating')
+                )
+                .outerjoin(users_can_teach_me, User.user_id == users_can_teach_me.c.other_user_id)
+                .outerjoin(users_want_to_learn_from_me, User.user_id == users_want_to_learn_from_me.c.other_user_id)
+                .outerjoin(user_ratings, User.user_id == user_ratings.c.other_user_id)
+                .filter(User.user_id != user_id)
+                .filter(User.user_id.notin_(excluded_user_ids))
+                .limit(50)
+                .all()
+            )
+
+            # Calculate matching score and prepare user list
+            users_list = []
+            for user in all_users:
+                matching_score = (user.skills_can_teach_me * 2) + user.skills_want_to_learn_from_me + user.average_rating
+                users_list.append({
                     'user_id': user.user_id,
                     'display_name': user.display_name,
-                    'matching_skills': [],
-                }
-            users_dict[user.user_id]['matching_skills'].append({
-                'skill_id': skill_id,
-                'skill_name': skill_name,
-                'fluency_level': fluency_level.value  # Adjust if fluency_level is an enum
-            })
+                    'skills_can_teach_me': user.skills_can_teach_me,
+                    'skills_want_to_learn_from_me': user.skills_want_to_learn_from_me,
+                    'average_rating': round(user.average_rating, 2),
+                    'matching_score': matching_score
+                })
 
-        sorted_users = sorted(users_dict.values(), key=lambda x: len(x['matching_skills']), reverse=True)
-        return sorted_users
+            # Sort users by matching score in descending order
+            sorted_users = sorted(users_list, key=lambda x: x['matching_score'], reverse=True)
+
+            # Fetch matching skills for each user
+            for user in sorted_users:
+                # Skills they can teach me
+                teaching_skills = (
+                    session.query(Skills.skill_id, Skills.skill_name)
+                    .join(UserSkills, UserSkills.skill_id == Skills.skill_id)
+                    .filter(
+                        UserSkills.user_id == user['user_id'],
+                        UserSkills.skill_id.in_(user_goals_sub)
+                    )
+                    .all()
+                )
+
+                # Skills they want to learn from me
+                learning_skills = (
+                    session.query(Skills.skill_id, Skills.skill_name)
+                    .join(UserGoals, UserGoals.skill_id == Skills.skill_id)
+                    .filter(
+                        UserGoals.user_id == user['user_id'],
+                        UserGoals.skill_id.in_(user_skills_sub)
+                    )
+                    .all()
+                )
+
+                user['matching_skills'] = [{'skill_id': s.skill_id, 'skill_name': s.skill_name} for s in teaching_skills]
+
+
+            return sorted_users
+
     except Exception as e:
         print(f"Error in find_compatible_users_with_skills: {e}")
         session.rollback()
@@ -135,10 +174,9 @@ class GetUser(Resource):
             return {'msg': 'User not found'}, 404
         return {'user_id': user.user_id, 'display_name': user.display_name}
 
-@api_ns.route('/current_user')
+@api_ns.route('/get_current_user')
 class CurrentUser(Resource):
     @api_ns.doc('get_current_user')
-    @api_ns.marshal_with(user_with_skills_model)  # Ensure user_model is defined
     @jwt_required()
     def get(self):
         """Get the current authenticated user"""
@@ -468,6 +506,15 @@ class RateUser(Resource):
 
         return {'msg': 'User rated successfully'}, 201
 
+def numToLevel(num): 
+    if num == 1:
+        return FluencyLevel.beginner
+    elif num == 2:
+        return FluencyLevel.medium
+    elif num == 3:
+        return FluencyLevel.advanced
+    else:
+        return None
 
 @api_ns.route('/submit_learning_skills')
 class SubmitLearningSkills(Resource):
@@ -476,46 +523,35 @@ class SubmitLearningSkills(Resource):
     def post(self):
         """Add learning skills"""
         current_user_id = get_jwt_identity()
-        data = request.get_json()
-        skill_rating = data.get('skillRating', {})
-        skills = skill_rating.get('skills', [])
-        ratings_dict = skill_rating.get('ratings', {})
+        data = request.get_json().get('skillRating', {})
+        ratings = data.get('ratings', {})
 
         with session_scope() as session:
-            try:
-                for skill_name in skills:
-                    rating = ratings_dict.get(skill_name)
-                    if rating is None:
-                        return {'msg': f'No rating provided for skill "{skill_name}"'}, 400
+            for skill_name in ratings:
+                rating = ratings[skill_name]
+                level = numToLevel(rating)
+                if level is None:
+                    level = FluencyLevel.beginner
 
-                    # Find or create the skill
-                    skill = session.query(Skills).filter_by(skill_name=skill_name).first()
-                    if not skill:
-                        skill = Skills(skill_name=skill_name)
-                        session.add(skill)
+                # Find or create the skill
+                skill = session.query(Skills).filter_by(skill_name=skill_name).first()
+                if not skill:
+                    continue
 
-                    # Add or update UserGoals
-                    user_goal = session.query(UserGoals).filter_by(
-                        user_id=current_user_id, skill_id=skill.skill_id
-                    ).first()
-                    if not user_goal:
-                        user_goal = UserGoals(
-                            user_id=current_user_id, skill_id=skill.skill_id, level=rating
-                        )
-                        session.add(user_goal)
-                    else:
-                        user_goal.level = rating  # Update the existing goal
+                # Add or update UserGoals
+                user_goal = session.query(UserGoals).filter_by(
+                    user_id=current_user_id, skill_id=skill.skill_id
+                ).first()
+                if not user_goal:
+                    user_goal = UserGoals(
+                        user_id=current_user_id, skill_id=skill.skill_id, level=level
+                    )
+                    session.add(user_goal)
+                else:
+                    user_goal.level = level
 
-                # Commit the session after all operations
-                session.commit()
-            except Exception as e:
-                session.rollback()
-                print(f"Error submitting learning skills: {e}")
-                return {'msg': 'Error submitting learning skills'}, 500
-
-        return {'msg': 'Skills and ratings submitted successfully'}, 201
-
-
+            session.commit()
+        return {'msg': 'Learning skills and levels submitted successfully'}, 201
 
 # user_routes.py
 
@@ -526,76 +562,48 @@ class SubmitTeachingSkills(Resource):
     def post(self):
         """Add teaching skills"""
         current_user_id = get_jwt_identity()
-        data = request.get_json()
-        skill_rating = data.get('skillRating', {})
-        skills = skill_rating.get('skills', [])
-        ratings_dict = skill_rating.get('ratings', {})
-
+        data = request.get_json().get('skillRating', {})
+        ratings = data.get('ratings', [])
         with session_scope() as session:
-            try:
-                for skill_name in skills:
-                    rating = ratings_dict.get(skill_name)
-                    if rating is None:
-                        return {'msg': f'No rating provided for skill "{skill_name}"'}, 400
+            for skill in ratings:
+                level = numToLevel(ratings[skill])
+                if level is None:
+                    continue
+                skill = session.query(Skills).filter_by(skill_name=skill).first()
+                if not skill:
+                    continue
 
-                    # Find or create the skill
-                    skill = session.query(Skills).filter_by(skill_name=skill_name).first()
-                    if not skill:
-                        skill = Skills(skill_name=skill_name)
-                        session.add(skill)
+                # Add or update UserGoals
+                user_skill = session.query(UserSkills).filter_by(
+                    user_id=current_user_id, skill_id=skill.skill_id
+                ).first()
+                if not user_skill:
+                    user_skill = UserSkills(
+                        user_id=current_user_id, skill_id=skill.skill_id, fluency_level=level
+                    )
+                    session.add(user_skill)
+                else:
+                    user_skill.fluency_level = level
+            session.commit()
+        current_user = session.query(User).filter_by(user_id=current_user_id).first()
+        current_user.has_logged_in = True
+        session.commit()
+        return {'msg': 'Teaching skills and levels submitted successfully'}, 201                
 
-                    # Add or update UserSkills
-                    user_skill = session.query(UserSkills).filter_by(
-                        user_id=current_user_id, skill_id=skill.skill_id
-                    ).first()
-                    if not user_skill:
-                        user_skill = UserSkills(
-                            user_id=current_user_id, skill_id=skill.skill_id, fluency_level=rating
-                        )
-                        session.add(user_skill)
-                    else:
-                        user_skill.fluency_level = rating  # Update the existing skill
-
-                # Update user's login status
-                user = session.query(User).filter_by(user_id=current_user_id).first()
-                user.has_logged_in = True
-
-                # Commit the session after all operations
-                session.commit()
-            except Exception as e:
-                session.rollback()
-                print(f"Error submitting teaching skills: {e}")
-                return {'msg': 'Error submitting teaching skills'}, 500
-
-        return {'msg': 'Teaching skills and ratings submitted successfully'}, 201
 
 
 
 
 @api_ns.route('/has_logged_in')
 class HasLoggedIn(Resource):
-    @api_ns.doc('set_has_logged_in')
+    @api_ns.doc('Find whether a user has logged in')
     @jwt_required()
     def post(self):
-        """Set has_logged_in flag to true for current user"""
-        try:
-            current_user_id = get_jwt_identity()
-            user = session.query(User).filter_by(user_id=current_user_id).first()
-            
-            if not user:
-                return {'msg': 'User not found'}, 404
-                
-            user.has_logged_in = True
-            session.commit()
-            
-            return {'msg': 'Successfully updated login status'}, 200
-            
-        except Exception as e:
-            session.rollback()
-            return {'msg': f'Error updating login status: {str(e)}'}, 500
-
-        session.commit()
-        return {'msg': 'Teaching skills and ratings submitted successfully'}, 201
+        """Find whether a user has logged in yet"""
+        current_user_id = get_jwt_identity()
+        with session_scope() as session:
+            current_user = session.query(User).filter_by(user_id=current_user_id).first()
+            return {'has_logged_in': current_user.has_logged_in}, 200
 
 
 

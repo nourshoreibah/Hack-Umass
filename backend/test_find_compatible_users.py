@@ -6,8 +6,16 @@ from sqlalchemy import text
 
 
 
-res = session.query(User).filter_by(email="johnjoe2@gmail.com").first()
-print(res.has_logged_in)
+# Assuming you have already retrieved user_nour as shown
+user_nour = session.query(User).filter_by(email="joe@gmail.com").first()
+
+# Get all skill names for user_nour
+skill_names = [user_skill.skill.skill_name for user_skill in user_nour.skills]
+
+# Print the skill names
+print(skill_names)
+
+
 
 
 # # List of coding languages

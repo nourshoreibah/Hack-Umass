@@ -6,3 +6,4 @@ terraform/.terraform.lock.hcl
 terraform.tfstate.backup
 env
 __pycache__
+terraform/devtrade-key.pem

@@ -4,6 +4,20 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import aliased
 from sqlalchemy import and_, union_all, or_
 from models import User, UserSkills, UserGoals, CommunityRatings, Skills, FluencyLevel, Requests, RequestStatus, session
+from contextlib import contextmanager
+
+@contextmanager
+def session_scope():
+    """Provide a transactional scope around a series of operations."""
+    session = Session()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
  
 
 # Create namespace
@@ -350,16 +364,22 @@ class DeclineInvite(Resource):
 
         return {'msg': 'Invite declined successfully'}, 200
 
-# Get all skills endpoint
 @api_ns.route('/skills')
 class SkillsResource(Resource):
     @api_ns.doc('get_skills')
     @jwt_required()
     def get(self):
         """Get all skills"""
-        skills = session.query(Skills).all()
-        skills_list = [{'skill_id': skill.skill_id, 'skill_name': skill.skill_name} for skill in skills]
-        return {'skills': skills_list}
+        with session_scope() as session:
+            try:
+                skills = session.query(Skills).all()
+                skills_list = [{'skill_id': skill.skill_id, 'skill_name': skill.skill_name} for skill in skills]
+                return {'skills': skills_list}
+            except Exception as e:
+                session.rollback()
+                print(f"Error retrieving skills: {e}")
+                return {'msg': 'Error retrieving skills'}, 500
+
     
 
 
@@ -448,75 +468,108 @@ class RateUser(Resource):
 
         return {'msg': 'User rated successfully'}, 201
 
-# submit learning skills endpoint
+
 @api_ns.route('/submit_learning_skills')
-class SkillsResource(Resource):
+class SubmitLearningSkills(Resource):
     @api_ns.doc('submit_learning_skills')
     @jwt_required()
     def post(self):
-        """Add to skills"""
+        """Add learning skills"""
         current_user_id = get_jwt_identity()
         data = request.get_json()
-        skills = data.get('skills', [])
-        ratings = data.get('ratings', [])
+        skill_rating = data.get('skillRating', {})
+        skills = skill_rating.get('skills', [])
+        ratings_dict = skill_rating.get('ratings', {})
 
-        if len(skills) != len(ratings):
-            return {'msg': 'Skills and ratings lists must be of the same length'}, 400
+        with session_scope() as session:
+            try:
+                for skill_name in skills:
+                    rating = ratings_dict.get(skill_name)
+                    if rating is None:
+                        return {'msg': f'No rating provided for skill "{skill_name}"'}, 400
 
-        for skill_name, rating in zip(skills, ratings):
-            # Find or create the skill
-            skill = session.query(Skills).filter_by(skill_name=skill_name).first()
-            if not skill:
-                skill = Skills(skill_name=skill_name)
-                session.add(skill)
+                    # Find or create the skill
+                    skill = session.query(Skills).filter_by(skill_name=skill_name).first()
+                    if not skill:
+                        skill = Skills(skill_name=skill_name)
+                        session.add(skill)
+
+                    # Add or update UserGoals
+                    user_goal = session.query(UserGoals).filter_by(
+                        user_id=current_user_id, skill_id=skill.skill_id
+                    ).first()
+                    if not user_goal:
+                        user_goal = UserGoals(
+                            user_id=current_user_id, skill_id=skill.skill_id, level=rating
+                        )
+                        session.add(user_goal)
+                    else:
+                        user_goal.level = rating  # Update the existing goal
+
+                # Commit the session after all operations
                 session.commit()
+            except Exception as e:
+                session.rollback()
+                print(f"Error submitting learning skills: {e}")
+                return {'msg': 'Error submitting learning skills'}, 500
 
-            # Add UserGoals for the current user
-            user_goal = session.query(UserGoals).filter_by(user_id=current_user_id, skill_id=skill.skill_id).first()
-            if not user_goal:
-                user_goal = UserGoals(user_id=current_user_id, skill_id=skill.skill_id, level=rating)
-                session.add(user_goal)
-            else:
-                user_goal.level = rating  # Update the existing goal with the new rating
-
-        session.commit()
         return {'msg': 'Skills and ratings submitted successfully'}, 201
+
 
 
 # user_routes.py
 
 @api_ns.route('/submit_teaching_skills')
-class TeachingSkillsResource(Resource):
+class SubmitTeachingSkills(Resource):
     @api_ns.doc('submit_teaching_skills')
     @jwt_required()
     def post(self):
         """Add teaching skills"""
         current_user_id = get_jwt_identity()
         data = request.get_json()
-        skills = data.get('skills', [])
-        ratings = data.get('ratings', [])
+        skill_rating = data.get('skillRating', {})
+        skills = skill_rating.get('skills', [])
+        ratings_dict = skill_rating.get('ratings', {})
 
-        if len(skills) != len(ratings):
-            return {'msg': 'Skills and ratings lists must be of the same length'}, 400
+        with session_scope() as session:
+            try:
+                for skill_name in skills:
+                    rating = ratings_dict.get(skill_name)
+                    if rating is None:
+                        return {'msg': f'No rating provided for skill "{skill_name}"'}, 400
 
-        for skill_name, rating in zip(skills, ratings):
-            # Find or create the skill
-            skill = session.query(Skills).filter_by(skill_name=skill_name).first()
-            if not skill:
-                skill = Skills(skill_name=skill_name)
-                session.add(skill)
+                    # Find or create the skill
+                    skill = session.query(Skills).filter_by(skill_name=skill_name).first()
+                    if not skill:
+                        skill = Skills(skill_name=skill_name)
+                        session.add(skill)
+
+                    # Add or update UserSkills
+                    user_skill = session.query(UserSkills).filter_by(
+                        user_id=current_user_id, skill_id=skill.skill_id
+                    ).first()
+                    if not user_skill:
+                        user_skill = UserSkills(
+                            user_id=current_user_id, skill_id=skill.skill_id, fluency_level=rating
+                        )
+                        session.add(user_skill)
+                    else:
+                        user_skill.fluency_level = rating  # Update the existing skill
+
+                # Update user's login status
+                user = session.query(User).filter_by(user_id=current_user_id).first()
+                user.has_logged_in = True
+
+                # Commit the session after all operations
                 session.commit()
+            except Exception as e:
+                session.rollback()
+                print(f"Error submitting teaching skills: {e}")
+                return {'msg': 'Error submitting teaching skills'}, 500
 
-            # Add UserSkills for the current user
-            user_skill = session.query(UserSkills).filter_by(user_id=current_user_id, skill_id=skill.skill_id).first()
-            if not user_skill:
-                user_skill = UserSkills(user_id=current_user_id, skill_id=skill.skill_id, fluency_level=rating)
-                session.add(user_skill)
-            else:
-                user_skill.fluency_level = rating  # Update the existing skill with the new rating
-        user = session.query(User).filter_by(user_id=current_user_id).first()
-        user.has_logged_in = True
-        session.commit()
+        return {'msg': 'Teaching skills and ratings submitted successfully'}, 201
+
+
 
 
 @api_ns.route('/has_logged_in')
@@ -571,14 +624,20 @@ class UserSkillsResource(Resource):
     @jwt_required()
     def get(self):
         """Get the authenticated user's skills and their current fluency level"""
-        try:
-            current_user_id = get_jwt_identity()
-            skills = session.query(UserSkills, Skills.skill_name, UserSkills.fluency_level).join(Skills, UserSkills.skill_id == Skills.skill_id).filter(UserSkills.user_id == current_user_id).all()
-            if not skills:
-                return {'msg': 'No skills found for this user'}, 404
+        current_user_id = get_jwt_identity()
+        with session_scope() as session:
+            try:
+                skills = session.query(UserSkills, Skills.skill_name, UserSkills.fluency_level).join(
+                    Skills, UserSkills.skill_id == Skills.skill_id).filter(UserSkills.user_id == current_user_id).all()
+                if not skills:
+                    return {'msg': 'No skills found for this user'}, 404
 
-            skills_list = [{'skill_name': skill.skill_name, 'fluency_level': fluency_level.value} for skill, skill_name, fluency_level in skills]
-            return {'skills': skills_list}, 200
-        except Exception as e:
-            print(f"Error retrieving user skills: {e}")
-            return {'msg': 'Error retrieving user skills'}, 500
+                skills_list = [
+                    {'skill_name': skill_name, 'fluency_level': fluency_level.value}
+                    for skill, skill_name, fluency_level in skills
+                ]
+                return {'skills': skills_list}, 200
+            except Exception as e:
+                session.rollback()
+                print(f"Error retrieving user skills: {e}")
+                return {'msg': 'Error retrieving user skills'}, 500

@@ -24,7 +24,6 @@ const SkillsFlow = () => {
         setCurrentStep(3);
         try {
             await axiosInstance.post('/api/submit_learning_skills', { 
-                user_id: user_id,
                 skillRating: {
                     skills: learningSkills,
                     ratings: ratings
@@ -44,7 +43,6 @@ const SkillsFlow = () => {
         setTeachingRatings(ratings);
         try {
             await axiosInstance.post('/api/submit_teaching_skills', { 
-                user_id: user_id,
                 skillRating: {
                     skills: teachingSkills, // of type int, going from 0-3. 0 is not a skill at all ignore. 
                     // 1 is beginner, 2 is intermediate, 3 is expert (to convert to Fluency Level)

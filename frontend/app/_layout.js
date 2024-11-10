@@ -3,6 +3,7 @@ import { AuthProvider, AuthContext } from '../contexts/AuthContext';
 import React, { useEffect, useContext } from 'react';
 
 export default function RootLayout() {
+
   return (
     <AuthProvider>
       <Main />

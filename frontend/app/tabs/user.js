@@ -2,10 +2,12 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, StyleSheet, Image, Button } from 'react-native';
 import axiosInstance from '../../api/axiosInstance';
 import { AuthContext } from '../../contexts/AuthContext';
+import { Stack, useRouter } from 'expo-router';
 
 const UserPage = () => {
   const [user, setUser] = useState(null);
   const { logout } = useContext(AuthContext);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -28,11 +30,17 @@ const UserPage = () => {
     );
   }
 
+
+  const editSkills = () => {
+    router.replace('/tabs/SkillsSelection');
+  };
+
   return (
     <View style={styles.container}>
       <Image source={{ uri: user.profilePicture }} style={styles.profileImage} />
       <Text style={styles.userName}>{user.display_name}</Text>
       <Button title="Logout" onPress={logout} />
+      <Button title="Edit Skills" onPress={editSkills} />
     </View>
   );
 };

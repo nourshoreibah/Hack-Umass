@@ -456,9 +456,64 @@ class SkillsResource(Resource):
     def post(self):
         """Add to skills"""
         current_user_id = get_jwt_identity()
-        skils = request.get_json()
+        data = request.get_json()
+        skills = data.get('skills', [])
+        ratings = data.get('ratings', [])
 
-    
+        if len(skills) != len(ratings):
+            return {'msg': 'Skills and ratings lists must be of the same length'}, 400
+
+        for skill_name, rating in zip(skills, ratings):
+            # Find or create the skill
+            skill = session.query(Skills).filter_by(skill_name=skill_name).first()
+            if not skill:
+                skill = Skills(skill_name=skill_name)
+                session.add(skill)
+                session.commit()
+
+            # Add UserGoals for the current user
+            user_goal = session.query(UserGoals).filter_by(user_id=current_user_id, skill_id=skill.skill_id).first()
+            if not user_goal:
+                user_goal = UserGoals(user_id=current_user_id, skill_id=skill.skill_id, level=rating)
+                session.add(user_goal)
+            else:
+                user_goal.level = rating  # Update the existing goal with the new rating
+
+        session.commit()
+        return {'msg': 'Skills and ratings submitted successfully'}, 201
+
+
+# user_routes.py
+
+@api_ns.route('/submit_teaching_skills')
+class TeachingSkillsResource(Resource):
+    @api_ns.doc('submit_teaching_skills')
+    @jwt_required()
+    def post(self):
+        """Add teaching skills"""
+        current_user_id = get_jwt_identity()
+        data = request.get_json()
+        skills = data.get('skills', [])
+        ratings = data.get('ratings', [])
+
+        if len(skills) != len(ratings):
+            return {'msg': 'Skills and ratings lists must be of the same length'}, 400
+
+        for skill_name, rating in zip(skills, ratings):
+            # Find or create the skill
+            skill = session.query(Skills).filter_by(skill_name=skill_name).first()
+            if not skill:
+                skill = Skills(skill_name=skill_name)
+                session.add(skill)
+                session.commit()
+
+            # Add UserSkills for the current user
+            user_skill = session.query(UserSkills).filter_by(user_id=current_user_id, skill_id=skill.skill_id).first()
+            if not user_skill:
+                user_skill = UserSkills(user_id=current_user_id, skill_id=skill.skill_id, fluency_level=rating)
+                session.add(user_skill)
+            else:
+                user_skill.fluency_level = rating  # Update the existing skill with the new rating
 
 
 @api_ns.route('/has_logged_in')
@@ -482,3 +537,7 @@ class HasLoggedIn(Resource):
         except Exception as e:
             session.rollback()
             return {'msg': f'Error updating login status: {str(e)}'}, 500
+
+        session.commit()
+        return {'msg': 'Teaching skills and ratings submitted successfully'}, 201
+

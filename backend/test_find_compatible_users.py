@@ -5,6 +5,7 @@ from user_routes import find_compatible_users_with_skills
 from sqlalchemy import text
 
 
+
 res = session.query(User).filter_by(email="johnjoe2@gmail.com").first()
 print(res.has_logged_in)
 
@@ -112,6 +113,7 @@ print(res.has_logged_in)
 #     print(f"User ID: {user['user_id']}, Display Name: {user['display_name']}")
 #     for skill in user['matching_skills']:
 #         print(f"  Skill ID: {skill['skill_id']}, Skill Name: {skill['skill_name']}, Fluency Level: {skill['fluency_level']}")
+
 
 
 

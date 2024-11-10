@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { AuthContext } from '../contexts/AuthContext';
 import { Link, router } from 'expo-router';
+import { axiosInstance } from '../api/axiosInstance';
 
 const LoginScreen = () => {
   const { login } = useContext(AuthContext);
@@ -14,16 +15,20 @@ const LoginScreen = () => {
     try {
       setIsLoading(true);
       setError(null);
-      await login(email, password);
-      // Navigate to home on success
-      router.replace('/tabs');
+      // Check current user data
+      const response = await axiosInstance.get('/api/current_user');
+      const userData = response.data;
+      
+      if (!userData.has_logged_in) {
+        await axiosInstance.post('/api/has_logged_in');
+        router.replace('/SkillsSelection');
+      } else {
+        router.replace('/tabs');
+      }
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back</Text>

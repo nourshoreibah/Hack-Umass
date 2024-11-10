@@ -544,3 +544,41 @@ class HasLoggedIn(Resource):
         session.commit()
         return {'msg': 'Teaching skills and ratings submitted successfully'}, 201
 
+
+
+@api_ns.route('/user/goals')
+class UserGoalsResource(Resource):
+    @api_ns.doc('get_user_goals')
+    @jwt_required()
+    def get(self):
+        """Get the authenticated user's skill goals and their current status (FluencyLevel)"""
+        try:
+            current_user_id = get_jwt_identity()
+            goals = session.query(UserGoals, Skills.skill_name, UserGoals.level).join(Skills, UserGoals.skill_id == Skills.skill_id).filter(UserGoals.user_id == current_user_id).all()
+            if not goals:
+                return {'msg': 'No goals found for this user'}, 404
+
+            goals_list = [{'skill_name': goal.skill_name, 'level': goal.level.value} for goal, skill_name, level in goals]
+            return {'goals': goals_list}, 200
+        except Exception as e:
+            print(f"Error retrieving user goals: {e}")
+            return {'msg': 'Error retrieving user goals'}, 500
+
+
+@api_ns.route('/user/skills')
+class UserSkillsResource(Resource):
+    @api_ns.doc('get_user_skills')
+    @jwt_required()
+    def get(self):
+        """Get the authenticated user's skills and their current fluency level"""
+        try:
+            current_user_id = get_jwt_identity()
+            skills = session.query(UserSkills, Skills.skill_name, UserSkills.fluency_level).join(Skills, UserSkills.skill_id == Skills.skill_id).filter(UserSkills.user_id == current_user_id).all()
+            if not skills:
+                return {'msg': 'No skills found for this user'}, 404
+
+            skills_list = [{'skill_name': skill.skill_name, 'fluency_level': fluency_level.value} for skill, skill_name, fluency_level in skills]
+            return {'skills': skills_list}, 200
+        except Exception as e:
+            print(f"Error retrieving user skills: {e}")
+            return {'msg': 'Error retrieving user skills'}, 500

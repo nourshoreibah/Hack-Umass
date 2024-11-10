@@ -110,13 +110,15 @@ resource "aws_instance" "devtrade_server" {
 
             # Install Node.js, npm, and build frontend
             curl -sL https://rpm.nodesource.com/setup_16.x | bash -
-            yum install -y nodejs
+            sudo yum install -y nodejs
             cd /var/www/Hack-Umass/frontend
-            npm install
-            npm run build
+            sudo npm install
+            npx expo export -p web
+
 
             # Install and configure Nginx
             amazon-linux-extras install nginx1 -y
+            sudo yum install -y nginx
             systemctl start nginx
             systemctl enable nginx
 
@@ -125,50 +127,63 @@ resource "aws_instance" "devtrade_server" {
 
             # Configure Nginx to serve the backend at /api and frontend from the root
             cat > /etc/nginx/nginx.conf <<EOL
-            events {}
-            http {
-                include /etc/nginx/mime.types;
-                server {
-                    listen 80;
-                    server_name devtrade.tech;
-
-                    # Redirect HTTP to HTTPS
-                    return 301 https://$host$request_uri;
-                }
-
-                server {
-                    listen 443 ssl;
-                    server_name devtrade.tech;
-
-                    # SSL certificate configuration (managed by Certbot)
-                    ssl_certificate /etc/letsencrypt/live/devtrade.tech/fullchain.pem;
-                    ssl_certificate_key /etc/letsencrypt/live/devtrade.tech/privkey.pem;
-
-                    # Serve the frontend build
-                    location / {ƒ
-                        root /usr/share/nginx/html;
-                        try_files $uri /index.html;
-                    }
-
-                    # Proxy requests to the backend
-                    location /api {
-                        proxy_pass http://127.0.0.1:5000;ß
-                        proxy_set_header Host $host;
-                        proxy_set_header X-Real-IP $remote_addr;
-                        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                        proxy_set_header X-Forwarded-Proto $scheme;
-                    }
-                }
+            server {
+                listen 80;
+                server_name devtrade.tech;
+                return 301 https://$host$request_uri;
             }
+
+            server {
+                listen 443 ssl;
+                server_name devtrade.tech;
+
+                ssl_certificate /etc/nginx/ssl/devtrade.tech.crt;
+                ssl_certificate_key /etc/nginx/ssl/devtrade.tech.key;
+
+                root /var/www/Hack-Umass/frontend/dist;
+                index index.html;
+
+                location / {
+                    try_files $uri /index.html;
+                    expires 1d;
+                    add_header Cache-Control "public, max-age=86400";
+                }
+
+                # Optional: Proxy API requests to backend
+                location /api/ {
+                    proxy_pass http://127.0.0.1:5000/;  # Adjust the backend port as necessary
+                    proxy_http_version 1.1;
+                    proxy_set_header Upgrade $http_upgrade;
+                    proxy_set_header Connection 'upgrade';
+                    proxy_set_header Host $host;
+                    proxy_cache_bypass $http_upgrade;
+                }
+
+                # Optional: Enable gzip compression
+                gzip on;
+                gzip_types text/plain application/javascript text/css application/json image/svg+xml;
+            }
+
             EOL
 
-            # Install Certbot and request SSL certificate
-            amazon-linux-extras install epel -y
-            yum install -y certbot
-            /usr/local/bin/pip3 install certbot-nginx
+            # Obtain SSL certificate
+            cd ~
+            curl https://get.acme.sh | sh
+            source ~/.acme.sh/acme.sh.env
+            ~/.acme.sh/acme.sh --issue --webroot /var/www/Hack-Umass/frontend/dist -d devtrade.tech --email shoreibah.n@northeastern.edu 
+            sudo mkdir -p /etc/nginx/ssl
+
+
+
+
+
+
+
+
 
             # Request SSL certificate
-            certbot --nginx -d devtrade.tech --non-interactive --agree-tos -m shoreibah.n@northeastern.edu
+            sudo certbot --nginx -d devtrade.tech --non-interactive --agree-tos -m shoreibah.n@northeastern.edu
+
 
             # Set up a cron job for auto-renewing the certificate
             echo "0 0 * * * /usr/bin/certbot renew --quiet" | crontab -

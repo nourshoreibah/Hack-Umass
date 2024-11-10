@@ -239,6 +239,7 @@ class IncomingRequests(Resource):
             session.query(Requests, User.display_name)
             .join(User, User.user_id == Requests.requester_id)
             .filter(Requests.requested_id == current_user_id)
+            .filter(Requests.status == RequestStatus.default)
             .all()
         )
 
@@ -250,7 +251,9 @@ class IncomingRequests(Resource):
                 'status': request.Requests.status.value
             }
             for request in incoming_requests
+        
         ]
+
 
         return {'requests': requests_list}
 
@@ -280,6 +283,7 @@ class OutgoingRequests(Resource):
             session.query(Requests, User.display_name)
             .join(User, User.user_id == Requests.requested_id)
             .filter(Requests.requester_id == current_user_id)
+            .filter(Requests.status == RequestStatus.default)
             .all()
         )
         
@@ -293,9 +297,107 @@ class OutgoingRequests(Resource):
             }
             for request in outgoing_requests
         ]
-        print(requests_list)
 
         return {'requests': requests_list}
 
-# Remove blueprint registration if it exists
-# app.register_blueprint(user_routes)
+# Define request models for accepting and declining invites
+accept_invite_model = api_ns.model('AcceptInvite', {
+    'requester_id': fields.Integer(required=True, description="ID of the user who sent the invite")
+})
+
+decline_invite_model = api_ns.model('DeclineInvite', {
+    'requester_id': fields.Integer(required=True, description="ID of the user who sent the invite")
+})
+
+# Define response models for accepting and declining invites
+invite_response_model = api_ns.model('InviteResponse', {
+    'msg': fields.String(description="Response message")
+})
+
+# Endpoint to accept an invite
+@api_ns.route('/accept_invite')
+class AcceptInvite(Resource):
+    @api_ns.doc('accept_invite')
+    @api_ns.expect(accept_invite_model)
+    @api_ns.marshal_with(invite_response_model)
+    @jwt_required()
+    def post(self):
+        """Accept an invite from another user"""
+        current_user_id = get_jwt_identity()
+        data = request.get_json()
+        requester_id = data.get('requester_id')
+
+        # Find the request from the requester
+        invite_request = session.query(Requests).filter_by(requested_id=current_user_id, requester_id=requester_id).first()
+        if not invite_request:
+            return {'msg': 'Invite not found'}, 404
+
+        # Update the status of the invite to 'accepted'
+        invite_request.status = RequestStatus.accepted
+        session.commit()
+
+        return {'msg': 'Invite accepted successfully'}, 200
+
+# Endpoint to decline an invite
+@api_ns.route('/decline_invite')
+class DeclineInvite(Resource):
+    @api_ns.doc('decline_invite')
+    @api_ns.expect(decline_invite_model)
+    @api_ns.marshal_with(invite_response_model)
+    @jwt_required()
+    def post(self):
+        """Decline an invite from another user"""
+        current_user_id = get_jwt_identity()
+        data = request.get_json()
+        requester_id = data.get('requester_id')
+
+        # Find the request from the requester
+        invite_request = session.query(Requests).filter_by(requested_id=current_user_id, requester_id=requester_id).first()
+        if not invite_request:
+            return {'msg': 'Invite not found'}, 404
+
+        # Update the status of the invite to 'declined'
+        invite_request.status = RequestStatus.declined
+        session.commit()
+
+        return {'msg': 'Invite declined successfully'}, 200
+
+# Get all skills endpoint
+@api_ns.route('/skills')
+class Skills(Resource):
+    @api_ns.doc('get_skills')
+    @jwt_required()
+    def get(self):
+        """Get all skills"""
+        skills = session.query(Skills).all()
+        skills_list = [{'skill_id': skill.skill_id, 'skill_name': skill.skill_name} for skill in skills]
+        return {'skills': skills_list}
+    
+# Get connections
+@api_ns.route('/connections')
+class Connections(Resource):
+    @api_ns.doc('get_connections')
+    @jwt_required()
+    def get(self):
+        """Get all connections for the logged-in user"""
+        current_user_id = get_jwt_identity()
+
+        # Get all users who have accepted requests from the current user
+        connections = (
+            session.query(User, Requests.status)
+            .join(Requests, and_(User.user_id == Requests.requested_id, Requests.requester_id == current_user_id))
+            .filter(Requests.status == RequestStatus.accepted)
+            .all()
+        )
+
+        # Format the response
+        connections_list = [
+            {
+                'user_id': user.user_id,
+                'display_name': user.display_name,
+                'email' : user.email,
+            }
+            for user, request in connections
+        ]
+
+        return {'connections': connections_list}

@@ -1,20 +1,27 @@
 // SkillsStrength.js
-import React, { useState } from 'react';
-import { View, Button, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Button, StyleSheet, Text } from 'react-native';
 import axiosInstance from '../api/axiosInstance';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import SkillSlider from './slider';
 
 const SkillsStrength = () => {
     const route = useRoute();
-    const { selectedSkills } = route.params;
+    const navigation = useNavigation();
+    const { selectedSkills } = route.params || {};
+
+    useEffect(() => {
+        if (!selectedSkills || !Array.isArray(selectedSkills)) {
+            navigation.navigate('SkillsSelection');
+        }
+    }, [selectedSkills, navigation]);
+
     const [skillRatings, setSkillRatings] = useState(
-        selectedSkills.reduce((acc, skill) => {
+        selectedSkills ? selectedSkills.reduce((acc, skill) => {
             acc[skill] = 0;
             return acc;
-        }, {})
+        }, {}) : {}
     );
-    const navigation = useNavigation();
 
     const handleSliderChange = (skill, value) => {
         setSkillRatings(prevRatings => ({
@@ -31,6 +38,14 @@ const SkillsStrength = () => {
             console.error('Failed to submit skill ratings:', error);
         }
     };
+
+    if (!selectedSkills || !Array.isArray(selectedSkills)) {
+        return (
+            <View style={styles.container}>
+                <Text>Loading...</Text>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>

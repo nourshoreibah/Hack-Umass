@@ -7,14 +7,21 @@ const SkillSlider = ({ skill, value, onValueChange }) => {
     return (
         <View style={styles.skillContainer}>
             <Text style={styles.skillName}>{skill}</Text>
-            <Slider
-                style={styles.slider}
-                minimumValue={0}
-                maximumValue={3}
-                step={1}
-                value={value}
-                onValueChange={onValueChange}
-            />
+            <View style={styles.sliderContainer}>
+                <Slider
+                    style={styles.slider}
+                    minimumValue={0}
+                    maximumValue={3}
+                    step={1}
+                    value={value}
+                    onValueChange={onValueChange}
+                />
+                <View style={styles.notchesContainer}>
+                    {[0, 1, 2, 3].map((notch) => (
+                        <View key={notch} style={styles.notch} />
+                    ))}
+                </View>
+            </View>
             <View style={styles.sliderLabels}>
                 <Text>None</Text>
                 <Text>Advanced</Text>
@@ -32,6 +39,12 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 10,
     },
+    sliderContainer: {
+        position: 'relative',
+        width: '100%',
+        height: 40,
+        justifyContent: 'center',
+    },
     slider: {
         width: '100%',
         height: 40,
@@ -40,6 +53,20 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 10,
+    },
+    notchesContainer: {
+        position: 'absolute',
+        top: '50%',
+        left: 0,
+        right: 0,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        transform: [{ translateY: -10 }],
+    },
+    notch: {
+        width: 2,
+        height: 10,
+        backgroundColor: '#000',
     },
 });
 

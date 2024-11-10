@@ -153,10 +153,8 @@ def find_compatible_users_with_skills(user_id):
                     .all()
                 )
 
-                user['matching_skills'] = {
-                    'can_learn_from_them': [{'skill_id': s.skill_id, 'skill_name': s.skill_name} for s in teaching_skills],
-                    'can_teach_them': [{'skill_id': s.skill_id, 'skill_name': s.skill_name} for s in learning_skills]
-                }
+                user['matching_skills'] = [{'skill_id': s.skill_id, 'skill_name': s.skill_name} for s in teaching_skills]
+
 
             return sorted_users
 

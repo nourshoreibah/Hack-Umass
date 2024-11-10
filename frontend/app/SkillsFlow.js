@@ -23,7 +23,12 @@ const SkillsFlow = () => {
         setLearningRatings(ratings);
         setCurrentStep(3);
         try {
-            await axiosInstance.post('/api/submit_learning_skills', { ratings });
+            await axiosInstance.post('/api/submit_learning_skills', { 
+                skillRating: {
+                    skills: learningSkills,
+                    ratings: ratings
+                }
+            });
         } catch (error) {
             console.error('Failed to submit learning skills:', error);
         }
@@ -37,7 +42,13 @@ const SkillsFlow = () => {
     const handleTeachingRatingsSubmitted = async (ratings) => {
         setTeachingRatings(ratings);
         try {
-            await axiosInstance.post('/api/submit_teaching_skills', { ratings });
+            await axiosInstance.post('/api/submit_teaching_skills', { 
+                skillRating: {
+                    skills: teachingSkills, // of type int, going from 0-3. 0 is not a skill at all ignore. 
+                    // 1 is beginner, 2 is intermediate, 3 is expert (to convert to Fluency Level)
+                    ratings: ratings // of type int, 1-5 
+                }
+            });
             router.replace('/tabs/user');
         } catch (error) {
             console.error('Failed to submit teaching skills:', error);

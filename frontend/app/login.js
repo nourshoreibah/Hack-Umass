@@ -3,6 +3,8 @@ import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ActivityIn
 import { AuthContext } from '../contexts/AuthContext';
 import { Link, router } from 'expo-router';
 import { axiosInstance } from '../api/axiosInstance';
+import { skillImages } from './skillImages';
+
 
 const LoginScreen = () => {
   const { login } = useContext(AuthContext);
@@ -10,6 +12,7 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
 
   const handleLogin = async () => {
     try {
@@ -32,7 +35,8 @@ const LoginScreen = () => {
   };
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome Back</Text>
+      
+      <Text style={styles.title}>DevTrade</Text>
       
       <TextInput
         placeholder="Email"
@@ -78,28 +82,37 @@ export default LoginScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 100, // Extra-large font size for strong visual impact
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-  },
+    color: '#1C77C3', // Bright, vibrant blue for the main color
+    marginBottom: 30,
+    textAlign: 'center',
+    textShadowColor: '#A6D9F7', // Lighter blue shadow color for a softer contrast
+    textShadowOffset: { width: 4, height: 4 }, // Slightly smaller shadow for a subtle depth effect
+    textShadowRadius: 6,
+    letterSpacing: 3, // Wider spacing for added grandeur
+    borderColor: '#A6D9F7', // Light blue outline to complement the main color
+    borderWidth: 2, // Outline width for emphasis without overpowering
+    padding: 20, // Extra padding to balance the large font size
+    backgroundColor: '#FFFFFF', // Light background to make colors pop
+    borderRadius: 10, // Rounded edges for a polished look
+},
+
+
   input: {
     width: '100%',
     padding: 15,
     borderRadius: 8,
-    backgroundColor: '#fff',
-    borderColor: '#ddd',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#CCCCCC',
     borderWidth: 1,
     marginBottom: 12,
-  },
-  inputError: {
-    borderColor: 'red',
   },
   button: {
     width: '100%',
@@ -109,29 +122,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
   },
-  buttonDisabled: {
-    backgroundColor: '#ccc',
-  },
   buttonText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
   footerText: {
     fontSize: 14,
-    color: '#666',
+    color: '#666666',
     marginTop: 20,
   },
   link: {
     color: '#007AFF',
     fontWeight: 'bold',
   },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  loader: {
-    marginTop: 20,
-  }
 });
+

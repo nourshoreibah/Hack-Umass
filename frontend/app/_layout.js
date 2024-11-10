@@ -2,12 +2,15 @@ import { Stack, useRouter } from 'expo-router';
 import { AuthProvider, AuthContext } from '../contexts/AuthContext';
 import React, { useEffect, useContext, useState } from 'react';
 import axiosInstance from '../api/axiosInstance';
+import BlueGradientBackground from './BlueGradientBackground';
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <Main />
-    </AuthProvider>
+    <BlueGradientBackground>
+      <AuthProvider>
+        <Main />
+      </AuthProvider>
+    </BlueGradientBackground>
   );
 }
 
@@ -39,6 +42,7 @@ function Main() {
     } else {
       router.replace('/login');
     }
+
   }, [authToken, router]);
 
   return (

@@ -6,6 +6,7 @@ import axiosInstance from '../api/axiosInstance';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { skillImages } from './skillImages';
 
+
 const SkillsSelection = ({ title, onSubmit }) => {
     const [skills, setSkills] = useState([]);
     const [isLoading, setIsLoading] = useState(true);

@@ -22,6 +22,7 @@ import SwiftIcon from '../assets/skillicons/swift.svg';
 import RIcon from '../assets/skillicons/r.svg';
 import DataAnalysisIcon from '../assets/skillicons/dataanalysis.png';
 import MachineLearningIcon from '../assets/skillicons/machinelearning.png';
+import Arrows from '../assets/skillicons/arrow.png';
 
 
 // Add other skill icons if needed
@@ -50,7 +51,7 @@ export const skillImages = {
   R: RIcon,
   'Data Analysis': DataAnalysisIcon,
   'Machine Learning': MachineLearningIcon,
-  // Add other mappings if needed
+  'Arrow': Arrows
 };
 
 console.log('Available skill images:', Object.keys(skillImages));

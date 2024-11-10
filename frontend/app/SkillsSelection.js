@@ -71,7 +71,7 @@ const SkillsSelection = () => {
     }
 
     const handleNextPress = () => {
-        navigation.navigate('NextComponent', { selectedSkills });
+        navigation.navigate('SkillsStrength', { selectedSkills });
     };
 
     return (

@@ -32,7 +32,9 @@ const UserPage = () => {
 
 
   const editSkills = () => {
-    router.replace('/SkillsSelection');
+    router.push({
+        pathname: '/SkillsFlow'
+    });
   };
 
   return (

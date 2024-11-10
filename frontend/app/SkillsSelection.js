@@ -3,14 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { View, FlatList, StyleSheet, Dimensions, ActivityIndicator, Text, Button, Platform } from 'react-native';
 import Tile from './tile';
 import axiosInstance from '../api/axiosInstance';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
-const SkillsSelection = () => {
+const SkillsSelection = ({ title, onSubmit }) => {
     const [skills, setSkills] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedSkills, setSelectedSkills] = useState([]);
     const navigation = useNavigation();
+    const route = useRoute();
+    const { nextScreen } = route.params || {};
 
     useEffect(() => {
         const fetchSkills = async () => {
@@ -71,11 +73,12 @@ const SkillsSelection = () => {
     }
 
     const handleNextPress = () => {
-        navigation.navigate('NextComponent', { selectedSkills });
+        onSubmit(selectedSkills);
     };
 
     return (
         <View style={styles.container}>
+            <Text style={styles.title}>{title}</Text>
             <FlatList
                 data={skills}
                 renderItem={renderItem}
@@ -98,6 +101,12 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#f5f5f5',
         justifyContent: 'center',
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        textAlign: 'center',
     },
     grid: {
         padding: 10,

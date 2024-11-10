@@ -32,7 +32,7 @@ const UserPage = () => {
 
 
   const editSkills = () => {
-    router.replace('/tabs/SkillsSelection');
+    router.replace('/SkillsSelection');
   };
 
   return (

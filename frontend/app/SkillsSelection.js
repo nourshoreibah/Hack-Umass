@@ -3,7 +3,7 @@
 // SkillsSelection.js
 import React from 'react';
 import { View, FlatList, StyleSheet, Dimensions } from 'react-native';
-import Tile from '../tile';
+import Tile from './tile';
 
 
 // SkillsSelection.js

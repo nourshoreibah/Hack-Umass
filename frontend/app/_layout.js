@@ -1,6 +1,7 @@
 import { Stack, useRouter } from 'expo-router';
 import { AuthProvider, AuthContext } from '../contexts/AuthContext';
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
+import axiosInstance from '../api/axiosInstance';
 
 export default function RootLayout() {
 
@@ -14,14 +15,32 @@ export default function RootLayout() {
 function Main() {
   const { authToken } = useContext(AuthContext);
   const router = useRouter();
+  const [user, setUser] = useState(null);
+
 
   useEffect(() => {
     if (authToken) {
-      router.replace('/tabs/home');
+      const fetchUser = async () => {
+        try {
+          const response = await axiosInstance.get('/api/current_user');
+          setUser(response.data);
+  
+          // Now that we have the user data, we can safely access has_logged_in
+          if (response.data.has_logged_in) {
+            router.replace('/tabs/home');
+          } else {
+            router.replace('/SkillsSelection');
+          }
+        } catch (error) {
+          console.error('Failed to fetch user data', error);
+        }
+      };
+      fetchUser();
     } else {
       router.replace('/login');
     }
   }, [authToken]);
+  
 
   return (
     <Stack>

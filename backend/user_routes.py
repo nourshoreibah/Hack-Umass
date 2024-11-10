@@ -95,9 +95,14 @@ def find_compatible_users_with_skills(user_id):
         .subquery()
     )
 
-    # Get user, skill details, and fluency level
+     # Get user, skill details, and fluency level
     compatible_users = (
-        session.query(User, Skills, other_user_skills.c.fluency_level)
+        session.query(
+            User,
+            Skills.skill_id.label('skill_id'),
+            Skills.skill_name.label('skill_name'),
+            other_user_skills.c.fluency_level
+        )
         .join(other_user_skills, User.user_id == other_user_skills.c.user_id)
         .join(Skills, Skills.skill_id == other_user_skills.c.skill_id)
         .filter(User.user_id.notin_(excluded_user_ids))
@@ -107,19 +112,19 @@ def find_compatible_users_with_skills(user_id):
 
     # Organize data
     users_dict = {}
-    for user, skill, fluency_level in compatible_users:
+    for user, skill_id, skill_name, fluency_level in compatible_users:
         if user.user_id not in users_dict:
             users_dict[user.user_id] = {
                 'user_id': user.user_id,
                 'display_name': user.display_name,
-                'matching_skills': []
-        } 
-
+                'matching_skills': [],
+            }
         users_dict[user.user_id]['matching_skills'].append({
-            'skill_id': skill.skill_id,
-            'skill_name': skill.skill_name,
-            'fluency_level': fluency_level.value  # Get enum value as string
+            'skill_id': skill_id,
+            'skill_name': skill_name,
+            'fluency_level': fluency_level.value  # Adjust if fluency_level is an enum
         })
+
     sorted_users = sorted(users_dict.values(), key=lambda x: len(x['matching_skills']), reverse=True)
     return sorted_users
 
@@ -162,7 +167,8 @@ class CompatibleUsers(Resource):
             current_user_id = get_jwt_identity()
             users = find_compatible_users_with_skills(current_user_id)
         except Exception as e:
-            return {'msg': 'Error finding compatible users: ' + e}, 500
+            print(str(e))
+            return {'msg': 'Error finding compatible users'}, 500
         if not users:
             return {'msg': 'No compatible users found'}, 404
         return {'users': users}
@@ -364,7 +370,7 @@ class DeclineInvite(Resource):
 
 # Get all skills endpoint
 @api_ns.route('/skills')
-class Skills(Resource):
+class SkillsResource(Resource):
     @api_ns.doc('get_skills')
     @jwt_required()
     def get(self):
@@ -399,5 +405,6 @@ class Connections(Resource):
             }
             for user, request in connections
         ]
+        print(connections_list)
 
         return {'connections': connections_list}

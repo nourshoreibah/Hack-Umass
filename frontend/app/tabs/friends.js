@@ -10,7 +10,7 @@ export const FriendPage = () => {
   const fetchFriends = async () => {
     try {
       const response = await axiosInstance.get('/api/connections');
-      setUsers(response.data.requests);
+      setUsers(response.data.connections);
     } catch (error) {
       console.error('Failed to fetch connections', error);
     }

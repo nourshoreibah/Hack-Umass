@@ -2,6 +2,7 @@ import { Stack, useRouter } from 'expo-router';
 import { AuthProvider, AuthContext } from '../contexts/AuthContext';
 import React, { useEffect, useContext, useState } from 'react';
 import axiosInstance from '../api/axiosInstance';
+import LinearGradient from 'react-native-web-linear-gradient';
 import BlueGradientBackground from './BlueGradientBackground';
 
 export default function RootLayout() {

@@ -20,11 +20,10 @@ const LoginScreen = () => {
       setError(null);
       await login(email, password);
       // Check current user data
-      const response = await axiosInstance.get('/api/current_user');
+      const response = await axiosInstance.get('/api/get_current_user');
       const userData = response.data;
       
       if (!userData.has_logged_in) {
-        await axiosInstance.post('/api/has_logged_in');
         router.replace('/SkillsSelection');
       } else {
         router.replace('/tabs');

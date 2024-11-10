@@ -34,11 +34,9 @@ DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_HOST = os.getenv('DB_HOST')
 DB_NAME = os.getenv('DB_NAME')
 
-print("connecting db")
 # Set up the connection to the AWS RDS PostgreSQL instance
 engine = create_engine(f'postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:5432/{DB_NAME}')
 Base.metadata.create_all(engine)
-print("connected db")
 
 # Creating a session
 Session = sessionmaker(bind=engine)
@@ -76,7 +74,7 @@ class Register(Resource):
 
         # Hash the password and create a new user record
         hashed_password = generate_password_hash(password)
-        new_user = User(email=email, password_hash=hashed_password, display_name=display_name)
+        new_user = User(email=email, password_hash=hashed_password, display_name=display_name, has_logged_in = False)
 
         # Add and commit the new user to the database
         session.add(new_user)
@@ -95,9 +93,9 @@ class Login(Resource):
         password = data.get('password')
 
         # Retrieve user from database by email
-        print("Retrieving user from database by email")
         user = session.query(User).filter_by(email=email).first()
-        print("User retrieved from database by email")
+        user.has_logged_in = True
+        session.commit()
         if not user or not check_password_hash(user.password_hash, password):
             return {"msg": "Bad email or password"}, 401
 

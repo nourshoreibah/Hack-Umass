@@ -32,7 +32,7 @@ export const FriendPage = () => {
 
   const fetchFriends = async () => {
     try {
-      const response = await axiosInstance.get('/api/connections');
+      const response = await axiosInstance.get('/protected/connections');
       setUsers(response.data.connections);
     } catch (error) {
       console.error('Failed to fetch connections', error);
@@ -64,7 +64,7 @@ export const FriendPage = () => {
                 rating={item.rating}
                 onChange={(newRating) => {
                   // Update the user's rating
-                  axiosInstance.post('/api/rate_user', {
+                  axiosInstance.post('/protected/rate_user', {
                     rated_id: item.user_id,
                     rating: newRating,
                   });

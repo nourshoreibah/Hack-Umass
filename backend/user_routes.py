@@ -4,10 +4,9 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import aliased
 from sqlalchemy import and_, union_all, or_
 from models import User, UserSkills, UserGoals, CommunityRatings, Skills, FluencyLevel, Requests, RequestStatus, session
- 
 
 # Create namespace
-api_ns = Namespace('api', description='API operations')
+api_ns = Namespace('protected', description='API operations')
 
 # Define response models
 skill_model = api_ns.model('Skill', {
@@ -465,3 +464,23 @@ class RateUser(Resource):
         session.commit()
 
         return {'msg': 'User rated successfully'}, 201
+    
+# Get average rating for a user
+@api_ns.route('/average_rating/<int:user_id>')
+class AverageRating(Resource):
+    @api_ns.doc('get_average_rating')
+    def get(self, user_id):
+        """Get the average rating for a user"""
+        user = session.query(User).filter_by(user_id=user_id).first()
+        if not user:
+            return {'msg': 'User not found'}, 404
+
+        # Calculate the average rating
+        ratings = (
+            session.query(CommunityRatings)
+            .filter_by(rated_id=user_id)
+        )
+        if ratings.count() == 0:
+            return {'average_rating': 0}
+
+        return {'average_rating': sum(rating.rating for rating in ratings) / ratings.count()}

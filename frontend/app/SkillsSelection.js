@@ -15,7 +15,7 @@ const SkillsSelection = () => {
     useEffect(() => {
         const fetchSkills = async () => {
             try {
-                const response = await axiosInstance.get('/api/skills');
+                const response = await axiosInstance.get('/protected/skills');
                 setSkills(response.data.skills);
             } catch (error) {
                 console.error('Failed to fetch skills:', error);

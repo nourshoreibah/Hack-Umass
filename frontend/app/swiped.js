@@ -11,7 +11,7 @@ export const SwipedPage = () => {
 
   const fetchSwipedUsers = async () => {
     try {
-      const response = await axiosInstance.get('/api/outgoing_requests');
+      const response = await axiosInstance.get('/protected/outgoing_requests');
       setUsers(response.data.requests);
     } catch (error) {
       console.error('Failed to fetch swiped users', error);
@@ -45,7 +45,7 @@ export const ReceivedInvitesPage = () => {
 
   const fetchReceivedInvites = async () => {
     try {
-      const response = await axiosInstance.get('/api/incoming_requests');
+      const response = await axiosInstance.get('/protected/incoming_requests');
       setInvites(response.data.requests);
     } catch (error) {
       console.error('Failed to fetch received invites', error);
@@ -60,7 +60,7 @@ export const ReceivedInvitesPage = () => {
 
   const handleAccept = async (requesterId) => {
     try {
-      await axiosInstance.post('/api/accept_invite', { requester_id: requesterId });
+      await axiosInstance.post('/protected/accept_invite', { requester_id: requesterId });
       setInvites(invites.filter(invite => invite.requester_id !== requesterId));
       fetchReceivedInvites();
     } catch (error) {
@@ -70,7 +70,7 @@ export const ReceivedInvitesPage = () => {
   
   const handleReject = async (requesterId) => {
     try {
-      await axiosInstance.post('/api/decline_invite', { requester_id: requesterId });
+      await axiosInstance.post('/protected/decline_invite', { requester_id: requesterId });
       setInvites(invites.filter(invite => invite.requester_id !== requesterId));
       fetchReceivedInvites();
     } catch (error) {

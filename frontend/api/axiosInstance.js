@@ -6,9 +6,9 @@ import { Alert } from 'react-native';
 import { router } from 'expo-router';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://127.0.0.1:5000', // Ensure this matches your backend URL
+  baseURL: 'http://localhost:5000', // Ensure this matches your backend URL
 });
-
+//https://devtrade.tech
 axiosInstance.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem('authToken');

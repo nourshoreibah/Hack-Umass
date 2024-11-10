@@ -1,4 +1,3 @@
-
 // tile.js
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
@@ -10,20 +9,28 @@ const Tile = ({
   onPress,
   testID = 'tile-button'
 }) => {
-  const [clickCount, setClickCount] = useState(0);
+  const [isToggled, setIsToggled] = useState(false);
 
   const handlePress = () => {
-    const newCount = clickCount + 1;
-    setClickCount(newCount);
+    const newToggleState = !isToggled;
+    setIsToggled(newToggleState);
     if (onPress) {
-      onPress(newCount);
+      onPress(newToggleState);
     }
   };
 
   return (
     <TouchableOpacity 
       onPress={handlePress}
-      style={[styles.container, { width: size, height: size }]}
+      style={[
+        styles.container, 
+        { 
+          width: size, 
+          height: size, 
+          borderWidth: isToggled ? 3 : 1, 
+          borderColor: isToggled ? 'green' : '#ccc' 
+        }
+      ]}
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={`${name} tile`}
@@ -36,8 +43,8 @@ const Tile = ({
       <Text style={styles.name} numberOfLines={1}>
         {name}
       </Text>
-      <Text style={styles.clickCount}>
-        Clicks: {clickCount}
+      <Text style={[styles.toggleState, { color: isToggled ? 'green' : '#666' }]}>
+        {isToggled ? 'Selected' : 'Not Selected'}
       </Text>
     </TouchableOpacity>
   );
@@ -71,10 +78,9 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
   },
-  clickCount: {
+  toggleState: {
     marginTop: 4,
     fontSize: 12,
-    color: '#666',
   }
 });
 

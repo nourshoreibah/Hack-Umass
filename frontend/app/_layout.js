@@ -29,7 +29,7 @@ function Main() {
           if (response.data.has_logged_in) {
             router.replace('/tabs/home');
           } else {
-            router.replace('/SkillsSelection');
+            router.replace('/SkillsFlow');
           }
         } catch (error) {
           console.error('Failed to fetch user data', error);

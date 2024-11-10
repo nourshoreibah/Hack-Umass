@@ -514,6 +514,9 @@ class TeachingSkillsResource(Resource):
                 session.add(user_skill)
             else:
                 user_skill.fluency_level = rating  # Update the existing skill with the new rating
+        user = session.query(User).filter_by(user_id=current_user_id).first()
+        user.has_logged_in = True
+        session.commit()
 
 
 @api_ns.route('/has_logged_in')

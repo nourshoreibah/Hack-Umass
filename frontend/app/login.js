@@ -15,6 +15,7 @@ const LoginScreen = () => {
     try {
       setIsLoading(true);
       setError(null);
+      await login(email, password);
       // Check current user data
       const response = await axiosInstance.get('/api/current_user');
       const userData = response.data;

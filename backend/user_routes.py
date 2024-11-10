@@ -119,8 +119,8 @@ def find_compatible_users_with_skills(user_id):
             'skill_name': skill.skill_name,
             'fluency_level': fluency_level.value  # Get enum value as string
         })
-
-    return list(users_dict.values())
+    sorted_users = sorted(users_dict.values(), key=lambda x: x['matching_skills_count'], reverse=True)
+    return sorted_users
 
 # Get user by id
 @api_ns.route('/user/<int:user_id>')

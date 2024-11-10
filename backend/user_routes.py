@@ -450,7 +450,10 @@ class RateUser(Resource):
         # Check if the user has already rated the user
         existing_rating = session.query(CommunityRatings).filter_by(rater_id=current_user_id, rated_id=rated_id).first()
         if existing_rating:
-            return {'msg': 'You have already rated this user'}, 400
+            existing_rating.rating = rating
+            session.commit()
+            return {'msg': 'Rating updated successfully'}, 200
+
 
         # Create a new rating
         new_rating = CommunityRatings(

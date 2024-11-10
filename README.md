@@ -1,4 +1,4 @@
-# Hack-Umass Project
+# Hack-UMass Project
 
 ## Overview
 

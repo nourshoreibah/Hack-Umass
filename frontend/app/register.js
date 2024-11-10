@@ -70,7 +70,7 @@ export default RegisterScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F5F5F5',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -78,15 +78,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#333333',
     marginBottom: 20,
   },
   input: {
     width: '100%',
     padding: 15,
     borderRadius: 8,
-    backgroundColor: '#fff',
-    borderColor: '#ddd',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#CCCCCC',
     borderWidth: 1,
     marginBottom: 12,
   },
@@ -99,13 +99,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   buttonText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
   footerText: {
     fontSize: 14,
-    color: '#666',
+    color: '#666666',
     marginTop: 20,
   },
   link: {
@@ -113,3 +113,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+

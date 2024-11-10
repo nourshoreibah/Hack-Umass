@@ -52,22 +52,41 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#F9F9F9',
   },
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
     marginBottom: 20,
+    border: '2px solid #C0C0C0',
   },
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
+    color: '#27496D',
   },
-  userAttribute: {
+  buttonContainer: {
+    marginTop: 20,
+  },
+  editButton: {
+    backgroundColor: '#4A90E2',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  logoutButton: {
+    backgroundColor: '#4A90E2',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
     fontSize: 16,
-    marginBottom: 5,
+    fontWeight: 'bold',
   },
 });
+
 
 export default UserPage;

@@ -84,20 +84,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#F9F9F9',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: '#27496D',
   },
   userCard: {
     flexDirection: 'row',
     padding: 10,
     marginBottom: 10,
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.8,
     shadowRadius: 2,
@@ -109,16 +110,14 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginRight: 10,
   },
-  userInfo: {
-    flex: 1,
-    justifyContent: 'center',
-  },
   userName: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#27496D',
   },
   userAttribute: {
     fontSize: 14,
+    color: '#5D737E',
   },
   buttonContainer: {
     flexDirection: 'row',

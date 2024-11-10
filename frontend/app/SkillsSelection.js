@@ -4,6 +4,7 @@ import { View, FlatList, StyleSheet, Dimensions, ActivityIndicator, Text, Button
 import Tile from './tile';
 import axiosInstance from '../api/axiosInstance';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { skillImages } from './skillImages';
 
 const SkillsSelection = ({ title, onSubmit }) => {
     const [skills, setSkills] = useState([]);
@@ -45,16 +46,20 @@ const SkillsSelection = ({ title, onSubmit }) => {
         });
     };
 
-    const renderItem = ({ item }) => (
-        <View style={[styles.tileContainer, { width: itemWidth }]}>
-            <Tile
-                imageUrl={`https://via.placeholder.com/150?text=${item.skill_name}`}
-                name={item.skill_name}
-                size={itemWidth - spacing}
-                onPress={(isSelected) => handleTilePress(item.skill_name, isSelected)}
-            />
-        </View>
-    );
+    const renderItem = ({ item }) => {
+        const ImageComponent = skillImages[item.skill_name];
+
+        return (
+            <View style={[styles.tileContainer, { width: itemWidth }]}>
+                <Tile
+                    ImageComponent={ImageComponent}
+                    name={item.skill_name}
+                    size={itemWidth - spacing}
+                    onPress={(isSelected) => handleTilePress(item.skill_name, isSelected)}
+                />
+            </View>
+        );
+    };
 
     if (isLoading) {
         return (

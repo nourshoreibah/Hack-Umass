@@ -135,7 +135,7 @@ class CurrentUser(Resource):
         return {
             'user_id': user.user_id,
             'display_name': user.display_name,
-          # Include other relevant fields
+            'has_logged_in': user.has_logged_in,
         }
 
 @api_ns.route('/compatible_users')
@@ -461,4 +461,24 @@ class SkillsResource(Resource):
     
 
 
-
+@api_ns.route('/has_logged_in')
+class HasLoggedIn(Resource):
+    @api_ns.doc('set_has_logged_in')
+    @jwt_required()
+    def post(self):
+        """Set has_logged_in flag to true for current user"""
+        try:
+            current_user_id = get_jwt_identity()
+            user = session.query(User).filter_by(user_id=current_user_id).first()
+            
+            if not user:
+                return {'msg': 'User not found'}, 404
+                
+            user.has_logged_in = True
+            session.commit()
+            
+            return {'msg': 'Successfully updated login status'}, 200
+            
+        except Exception as e:
+            session.rollback()
+            return {'msg': f'Error updating login status: {str(e)}'}, 500

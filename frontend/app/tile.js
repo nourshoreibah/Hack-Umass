@@ -2,13 +2,13 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 
-const Tile = ({ 
-  ImageComponent, 
-  name, 
-  size = 150, 
-  onPress,
-  testID = 'tile-button'
-}) => {
+const Tile = ({ imageSource, ...props }) => {
+  const { 
+    name, 
+    size = 150, 
+    onPress,
+    testID = 'tile-button'
+  } = props;
   const [isToggled, setIsToggled] = useState(false);
 
   const handlePress = () => {
@@ -35,14 +35,10 @@ const Tile = ({
       accessibilityRole="button"
       accessibilityLabel={`${name} tile`}
     >
-      {ImageComponent ? (
-        <ImageComponent width={size * 0.8} height={size * 0.8} />
-      ) : (
-        <Image
-          source={require('../assets/skillicons/placeholder.png')} // Ensure this path is correct
-          style={{ width: size * 0.8, height: size * 0.8 }}
-        />
-      )}
+      <Image
+        source={imageSource || require('../assets/skillicons/placeholder.png')}
+        style={{ width: size * 0.7, height: size * 0.7 }}
+      />
       <Text style={styles.name} numberOfLines={1}>
         {name}
       </Text>
@@ -68,12 +64,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-  },
-  placeholderImage: {
-    width: '80%',
-    height: '60%',
-    borderRadius: 8,
-    backgroundColor: '#ccc',
   },
   name: {
     marginTop: 8,

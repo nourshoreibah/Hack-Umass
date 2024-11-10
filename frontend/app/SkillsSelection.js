@@ -47,12 +47,12 @@ const SkillsSelection = ({ title, onSubmit }) => {
     };
 
     const renderItem = ({ item }) => {
-        const ImageComponent = skillImages[item.skill_name];
+        const imageSource = skillImages[item.skill_name];
 
         return (
             <View style={[styles.tileContainer, { width: itemWidth }]}>
                 <Tile
-                    ImageComponent={ImageComponent}
+                    imageSource={imageSource}
                     name={item.skill_name}
                     size={itemWidth - spacing}
                     onPress={(isSelected) => handleTilePress(item.skill_name, isSelected)}

@@ -18,6 +18,11 @@ import ObjectiveCIcon from '../assets/skillicons/objectivec.svg';
 import DartIcon from '../assets/skillicons/dart.svg';
 import BashIcon from '../assets/skillicons/bash.svg';
 import CIcon from '../assets/skillicons/c.svg';
+import SwiftIcon from '../assets/skillicons/swift.svg';
+import RIcon from '../assets/skillicons/r.svg';
+import DataAnalysisIcon from '../assets/skillicons/dataanalysis.png';
+import MachineLearningIcon from '../assets/skillicons/machinelearning.png';
+
 
 // Add other skill icons if needed
 
@@ -27,7 +32,7 @@ export const skillImages = {
   Java: JavaIcon,
   'C#': CSharpIcon,
   Ruby: RubyIcon,
-  Go: GoIcon,
+  'Go (Golang)': GoIcon,
   Kotlin: KotlinIcon,
   TypeScript: TypeScriptIcon,
   Rust: RustIcon,
@@ -39,7 +44,14 @@ export const skillImages = {
   SQL: SqlIcon,
   'Objective-C': ObjectiveCIcon,
   Dart: DartIcon,
-  Bash: BashIcon,
-  C: CIcon,
+  'Shell (Bash)': BashIcon,
+  'C/C++': CIcon,
+  Swift: SwiftIcon,
+  R: RIcon,
+  'Data Analysis': DataAnalysisIcon,
+  'Machine Learning': MachineLearningIcon,
   // Add other mappings if needed
 };
+
+console.log('Available skill images:', Object.keys(skillImages));
+// console.log('Skill name:', item.skill_name);

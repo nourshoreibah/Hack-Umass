@@ -1,6 +1,6 @@
 // SkillsStrength.js
-import React, { useState, useEffect } from 'react';
-import { View, Button, StyleSheet, Text } from 'react-native';
+import React, { useState } from 'react';
+import { View, Button, StyleSheet, Text, ScrollView } from 'react-native';
 import axiosInstance from '../api/axiosInstance';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import SkillSlider from './slider';
@@ -27,19 +27,27 @@ const SkillsStrength = ({ title, selectedSkills, onSubmit }) => {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>{title}</Text>
-            {selectedSkills.map(skill => (
-                <SkillSlider
-                    key={skill}
-                    skill={skill}
-                    value={skillRatings[skill]}
-                    onValueChange={value => handleSliderChange(skill, value)}
+            <ScrollView 
+                style={styles.scrollContainer}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={true}
+            >
+                {selectedSkills.map(skill => (
+                    <SkillSlider
+                        key={skill}
+                        skill={skill}
+                        value={skillRatings[skill]}
+                        onValueChange={value => handleSliderChange(skill, value)}
+                    />
+                ))}
+            </ScrollView>
+            <View style={styles.buttonContainer}>
+                <Button 
+                    title="Submit" 
+                    onPress={handleSubmit}
+                    disabled={selectedSkills.length === 0}
                 />
-            ))}
-            <Button 
-                title="Submit" 
-                onPress={handleSubmit}
-                disabled={selectedSkills.length === 0}
-            />
+            </View>
         </View>
     );
 };
@@ -47,15 +55,26 @@ const SkillsStrength = ({ title, selectedSkills, onSubmit }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
         backgroundColor: '#f5f5f5',
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 20,
+        marginVertical: 20,
         textAlign: 'center',
     },
+    scrollContainer: {
+        flex: 1,
+    },
+    scrollContent: {
+        padding: 20,
+    },
+    buttonContainer: {
+        padding: 20,
+        backgroundColor: '#f5f5f5',
+        borderTopWidth: 1,
+        borderTopColor: '#ddd',
+    }
 });
 
 export default SkillsStrength;

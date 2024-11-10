@@ -12,6 +12,8 @@ const RegisterScreen = () => {
   const handleRegister = async () => {
     try {
       await register(email, password, displayName);
+      // Navigate to login on success
+      router.replace('/login');
     } catch (error) {
       alert('Registration failed');
     }

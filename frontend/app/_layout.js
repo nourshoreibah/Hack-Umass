@@ -4,7 +4,6 @@ import React, { useEffect, useContext, useState } from 'react';
 import axiosInstance from '../api/axiosInstance';
 
 export default function RootLayout() {
-
   return (
     <AuthProvider>
       <Main />
@@ -17,30 +16,30 @@ function Main() {
   const router = useRouter();
   const [user, setUser] = useState(null);
 
-
   useEffect(() => {
-    if (authToken) {
-      const fetchUser = async () => {
-        try {
-          const response = await axiosInstance.get('/api/current_user');
-          setUser(response.data);
-  
-          // Now that we have the user data, we can safely access has_logged_in
-          if (response.data.has_logged_in) {
-            router.replace('/tabs/home');
-          } else {
-            router.replace('/SkillsFlow');
-          }
-        } catch (error) {
-          console.error('Failed to fetch user data', error);
+    const fetchUser = async () => {
+      try {
+        const response = await axiosInstance.get('/api/get_current_user');
+        console.log(response);
+        setUser(response.data);
+
+        // Now that we have the user data, we can safely access has_logged_in
+        if (response.data.has_logged_in === true) {
+          router.replace('/tabs/home');
+        } else {
+          router.replace('/SkillsFlow');
         }
-      };
+      } catch (error) {
+        console.error('Failed to fetch user data', error);
+      }
+    };
+
+    if (authToken) {
       fetchUser();
     } else {
       router.replace('/login');
     }
-  }, [authToken]);
-  
+  }, [authToken, router]);
 
   return (
     <Stack>

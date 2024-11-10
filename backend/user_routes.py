@@ -112,18 +112,15 @@ def find_compatible_users_with_skills(user_id):
             users_dict[user.user_id] = {
                 'user_id': user.user_id,
                 'display_name': user.display_name,
-                'matching_skills': [],
-                'matching_skills_count': 0
+                'matching_skills': []
         } 
-        else:
-            users_dict[user.user_id]['matching_skills_count'] += 1
 
         users_dict[user.user_id]['matching_skills'].append({
             'skill_id': skill.skill_id,
             'skill_name': skill.skill_name,
             'fluency_level': fluency_level.value  # Get enum value as string
         })
-    sorted_users = sorted(users_dict.values(), key=lambda x: x['matching_skills_count'], reverse=True)
+    sorted_users = sorted(users_dict.values(), key=lambda x: len(x['matching_skills']), reverse=True)
     return sorted_users
 
 # Get user by id

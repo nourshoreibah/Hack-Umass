@@ -3,6 +3,30 @@
 from models import User, UserSkills, UserGoals, Skills, FluencyLevel, Requests, session
 from user_routes import find_compatible_users_with_skills
 
+# List of coding languages
+coding_languages = [
+    "JavaScript",
+    "Python",
+    "Java",
+    "C#",
+    "C/C++",
+    "PHP",
+    "R",
+    "TypeScript",
+    "Swift",
+    "Go (Golang)",
+    "Ruby",
+    "MATLAB",
+    "Kotlin",
+    "Rust",
+    "Perl",
+    "Scala",
+    "Dart",
+    "Lua",
+    "Objective-C",
+    "Shell (Bash)"
+]
+
 # Helper functions to avoid duplicate entries
 def get_or_create_skill(skill_name):
     skill = session.query(Skills).filter_by(skill_name=skill_name).first()
@@ -38,48 +62,46 @@ def add_user_skill(user_id, skill_id, fluency_level):
         session.add(user_skill)
         session.commit()
 
-        
+# Ensure the users exist
+user_nour = get_or_create_user('joe@gmail.com', 'Nour')
+user_tyler = get_or_create_user('hello@example.com', 'Tyler')
 
-# Ensure the user with email "hello@example.com" exists
-user_nour = get_or_create_user('joe@gmail.com', 'Hello User')
-user_tyler = get_or_create_user('hello@example.com', 'Hello User')
-
-# Delete all requests sent by user_tyler
+# Delete all requests sent by the users
 session.query(Requests).filter_by(requester_id=user_tyler.user_id).delete()
 session.query(Requests).filter_by(requester_id=user_nour.user_id).delete()
 session.commit()
 
 print(user_nour.display_name)
 
-# Create some skills
-skill_python = get_or_create_skill('Python')
-skill_javascript = get_or_create_skill('JavaScript')
-skill_swift = get_or_create_skill('Swift')
+# Create skills for all coding languages and store them in a dictionary
+skill_objects = {}
+for lang in coding_languages:
+    skill = get_or_create_skill(lang)
+    skill_objects[lang] = skill
 
-# Assign goals to the user
-add_user_goal(user_nour.user_id, skill_python.skill_id)
-add_user_goal(user_nour.user_id, skill_javascript.skill_id)
-add_user_skill(user_nour.user_id, skill_swift.skill_id, FluencyLevel.medium)
+# Assign goals to user_nour
+add_user_goal(user_nour.user_id, skill_objects['Python'].skill_id)
+add_user_goal(user_nour.user_id, skill_objects['JavaScript'].skill_id)
+add_user_skill(user_nour.user_id, skill_objects['Swift'].skill_id, FluencyLevel.medium)
 
-add_user_skill(user_tyler.user_id, skill_python.skill_id, FluencyLevel.advanced)
-add_user_goal(user_tyler.user_id, skill_swift.skill_id)
-
+# Assign skills and goals to user_tyler
+add_user_skill(user_tyler.user_id, skill_objects['Python'].skill_id, FluencyLevel.advanced)
+add_user_goal(user_tyler.user_id, skill_objects['Swift'].skill_id)
 
 # Create other users who have the skills the user wants to learn
 user_other1 = get_or_create_user('user1@example.com', 'User One')
 user_other2 = get_or_create_user('user2@example.com', 'User Two')
 
 # Assign skills to other users
-add_user_skill(user_other1.user_id, skill_python.skill_id, FluencyLevel.advanced)
-add_user_skill(user_other1.user_id, skill_javascript.skill_id, FluencyLevel.beginner)
-add_user_skill(user_other2.user_id, skill_javascript.skill_id, FluencyLevel.medium)
-
+add_user_skill(user_other1.user_id, skill_objects['Python'].skill_id, FluencyLevel.advanced)
+add_user_skill(user_other1.user_id, skill_objects['JavaScript'].skill_id, FluencyLevel.beginner)
+add_user_skill(user_other2.user_id, skill_objects['JavaScript'].skill_id, FluencyLevel.medium)
 
 # Invoke the function to find compatible users
 compatible_users = find_compatible_users_with_skills(user_nour.user_id)
 
 # Print the results
-print("Compatible Users for hello@example.com:")
+print("Compatible Users for joe@gmail.com:")
 for user in compatible_users:
     print(f"User ID: {user['user_id']}, Display Name: {user['display_name']}")
     for skill in user['matching_skills']:

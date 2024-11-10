@@ -30,37 +30,9 @@ const UserPage = () => {
     );
   }
 
-  const CodingLanguage = {
-    JAVASCRIPT: "JavaScript",
-    PYTHON: "Python",
-    JAVA: "Java",
-    CSHARP: "C#",
-    CCPP: "C/C++",
-    PHP: "PHP",
-    R: "R",
-    TYPESCRIPT: "TypeScript",
-    SWIFT: "Swift",
-    GOLANG: "Go (Golang)",
-    RUBY: "Ruby",
-    MATLAB: "MATLAB",
-    KOTLIN: "Kotlin",
-    RUST: "Rust",
-    PERL: "Perl",
-    SCALA: "Scala",
-    DART: "Dart",
-    LUA: "Lua",
-    OBJECTIVE_C: "Objective-C",
-    SHELL: "Shell (Bash)"
-  };
 
-  // a function to change the router endpoint to the skills selection page
   const editSkills = () => {
-    router.replace({
-      pathname: '/tabs/SkillsSelection',
-      params: { 
-        languages: CodingLanguage
-      }
-    });
+    router.replace('/tabs/SkillsSelection');
   };
 
   return (

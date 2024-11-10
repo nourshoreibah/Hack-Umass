@@ -1,8 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import { AuthProvider, AuthContext } from '../contexts/AuthContext';
 import React, { useEffect, useContext } from 'react';
-import Tile from './tile';
-import SkillsSelection from './tabs/SkillsSelection';
 
 export default function RootLayout() {
 
@@ -30,7 +28,6 @@ function Main() {
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="tabs" options={{ headerShown: false }} />
         <Stack.Screen name="register" options={{ headerShown: false }} />
-        <Stack.Screen name="SkillsSelection" options={{ headerShown: false }} />
       </Stack>
   );
 }

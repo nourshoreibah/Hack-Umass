@@ -5,13 +5,10 @@ import React from 'react';
 import { View, FlatList, StyleSheet, Dimensions } from 'react-native';
 import Tile from '../tile';
 
+
 // SkillsSelection.js
-const SkillsSelection = ({ languages }) => {
+const SkillsSelection = () => {
     // Convert passed languages object to array
-    const languagesList = Object.entries(languages).map(([key, value]) => ({
-      id: key,
-      name: value
-    }));
   
     // Rest of the component remains the same, just use languagesList instead of hardcoded data
     const screenWidth = Dimensions.get('window').width;
@@ -33,7 +30,8 @@ const SkillsSelection = ({ languages }) => {
     return (
       <View style={styles.container}>
         <FlatList
-          data={languagesList}
+          // data={languagesList}
+          data={null}
           renderItem={renderItem}
           keyExtractor={item => item.id}
           numColumns={numColumns}

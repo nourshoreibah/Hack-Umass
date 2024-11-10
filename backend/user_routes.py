@@ -2,7 +2,7 @@ from flask import jsonify, request
 from flask_restx import Resource, Namespace, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import aliased
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 from models import User, UserSkills, UserGoals, CommunityRatings, Skills, FluencyLevel, Requests, RequestStatus, session
  
 
@@ -388,10 +388,13 @@ class Connections(Resource):
         """Get all connections for the logged-in user"""
         current_user_id = get_jwt_identity()
 
-        # Get all users who have accepted requests from the current user
+        # Get all users who have accepted requests involving the current user, whether they were the requester or requested
         connections = (
-            session.query(User, Requests.status)
-            .join(Requests, and_(User.user_id == Requests.requested_id, Requests.requester_id == current_user_id))
+            session.query(User)
+            .join(Requests, or_(
+                and_(User.user_id == Requests.requested_id, Requests.requester_id == current_user_id),
+                and_(User.user_id == Requests.requester_id, Requests.requested_id == current_user_id)
+            ))
             .filter(Requests.status == RequestStatus.accepted)
             .all()
         )
@@ -401,10 +404,46 @@ class Connections(Resource):
             {
                 'user_id': user.user_id,
                 'display_name': user.display_name,
-                'email' : user.email,
+                'email': user.email,
             }
-            for user, request in connections
+            for user in connections
         ]
-        print(connections_list)
 
         return {'connections': connections_list}
+    
+# Rate user endpoint
+@api_ns.route('/rate_user')
+class RateUser(Resource):
+    @api_ns.doc('rate_user')
+    @jwt_required()
+    def post(self):
+        """Rate a user"""
+        current_user_id = get_jwt_identity()
+        data = request.get_json()
+        rated_id = data.get('rated_id')
+        rating = data.get('rating')
+
+        # Check if the user to be rated exists
+        rated_user = session.query(User).filter_by(user_id=rated_id).first()
+        if not rated_user:
+            return {'msg': 'User not found'}, 404
+
+        # Check if the rating is valid
+        if rating < 1 or rating > 5:
+            return {'msg': 'Invalid rating value. Rating must be between 1 and 5'}, 400
+
+        # Check if the user has already rated the user
+        existing_rating = session.query(CommunityRatings).filter_by(rater_id=current_user_id, rated_id=rated_id).first()
+        if existing_rating:
+            return {'msg': 'You have already rated this user'}, 400
+
+        # Create a new rating
+        new_rating = CommunityRatings(
+            rater_id=current_user_id,
+            rated_id=rated_id,
+            rating=rating
+        )
+        session.add(new_rating)
+        session.commit()
+
+        return {'msg': 'User rated successfully'}, 201

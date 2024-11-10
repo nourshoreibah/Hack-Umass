@@ -1,9 +1,10 @@
-from flask import jsonify
+from flask import jsonify, request
 from flask_restx import Resource, Namespace, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import aliased
 from sqlalchemy import and_
-from models import User, UserSkills, UserGoals, CommunityRatings, Skills, FluencyLevel, Requests, session
+from models import User, UserSkills, UserGoals, CommunityRatings, Skills, FluencyLevel, Requests, RequestStatus, session
+ 
 
 # Create namespace
 api_ns = Namespace('api', description='API operations')
@@ -57,6 +58,13 @@ def find_compatible_users_with_skills(user_id):
         .subquery()
     )
 
+    # Get the skills the current user has
+    user_skill_ids = (
+        session.query(UserSkills.skill_id)
+        .filter(UserSkills.user_id == user_id)
+        .subquery()
+    )
+
     # Find other users who have these skills with their fluency levels
     other_user_skills = (
         session.query(
@@ -69,11 +77,31 @@ def find_compatible_users_with_skills(user_id):
         .subquery()
     )
 
+    # Find other users who want to learn the skills the current user has
+    other_user_goals = (
+        session.query(UserGoals.user_id)
+        .filter(UserGoals.skill_id.in_(user_skill_ids))
+        .subquery()
+    )
+
+    # Exclude users with existing outgoing or incoming requests
+    excluded_user_ids = (
+        session.query(Requests.requested_id)
+        .filter(Requests.requester_id == user_id)
+        .union(
+            session.query(Requests.requester_id)
+            .filter(Requests.requested_id == user_id)
+        )
+        .subquery()
+    )
+
     # Get user, skill details, and fluency level
     compatible_users = (
         session.query(User, Skills, other_user_skills.c.fluency_level)
         .join(other_user_skills, User.user_id == other_user_skills.c.user_id)
         .join(Skills, Skills.skill_id == other_user_skills.c.skill_id)
+        .filter(User.user_id.notin_(excluded_user_ids))
+        .filter(User.user_id.in_(other_user_goals))
         .all()
     )
 
@@ -85,14 +113,15 @@ def find_compatible_users_with_skills(user_id):
                 'user_id': user.user_id,
                 'display_name': user.display_name,
                 'matching_skills': []
-            }
+        } 
+
         users_dict[user.user_id]['matching_skills'].append({
             'skill_id': skill.skill_id,
             'skill_name': skill.skill_name,
             'fluency_level': fluency_level.value  # Get enum value as string
         })
-
-    return list(users_dict.values())
+    sorted_users = sorted(users_dict.values(), key=lambda x: len(x['matching_skills']), reverse=True)
+    return sorted_users
 
 # Get user by id
 @api_ns.route('/user/<int:user_id>')
@@ -163,6 +192,7 @@ class MakeRequest(Resource):
 
         # Check if the requested user exists
         requested_user = session.query(User).filter_by(user_id=requested_id).first()
+
         if not requested_user:
             return {'msg': 'Requested user not found'}, 404
 
@@ -252,6 +282,7 @@ class OutgoingRequests(Resource):
             .filter(Requests.requester_id == current_user_id)
             .all()
         )
+        
 
         # Format the response
         requests_list = [
@@ -262,6 +293,7 @@ class OutgoingRequests(Resource):
             }
             for request in outgoing_requests
         ]
+        print(requests_list)
 
         return {'requests': requests_list}
 

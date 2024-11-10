@@ -1,25 +1,28 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, Button } from 'react-native';
 import axiosInstance from '../api/axiosInstance';
 import { AuthContext } from '../contexts/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 
 export const SwipedPage = () => {
   const [users, setUsers] = useState([]);
-  const { logout } = useContext(AuthContext);
 
-  useEffect(() => {
-    const fetchSwipedUsers = async () => {
-      try {
-        const response = await axiosInstance.get('/api/outgoing-requests');
-        setUsers(response.data);
-      } catch (error) {
-        console.error('Failed to fetch swiped users', error);
-      }
-    };
+  const fetchSwipedUsers = async () => {
+    try {
+      const response = await axiosInstance.get('/api/outgoing_requests');
+      setUsers(response.data.requests);
+    } catch (error) {
+      console.error('Failed to fetch swiped users', error);
+    }
+  };
 
-    fetchSwipedUsers();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchSwipedUsers();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
@@ -29,13 +32,7 @@ export const SwipedPage = () => {
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <View style={styles.userCard}>
-            <Image source={{ uri: item.profilePicture }} style={styles.profileImage} />
-            <View style={styles.userInfo}>
-              <Text style={styles.userName}>{item.name}</Text>
-              <Text style={styles.userAttribute}>Email: {item.email}</Text>
-              <Text style={styles.userAttribute}>Phone: {item.phone}</Text>
-              <Text style={styles.userAttribute}>Address: {item.address}</Text>
-            </View>
+            <Text style={styles.userName}>{item.requested_display_name}</Text>
           </View>
         )}
       />
@@ -46,22 +43,24 @@ export const SwipedPage = () => {
 export const ReceivedInvitesPage = () => {
   const [invites, setInvites] = useState([]);
 
-  useEffect(() => {
-    const fetchReceivedInvites = async () => {
-      try {
-        const response = await axiosInstance.get('/incoming-requests');
-        setInvites(response.data);
-      } catch (error) {
-        console.error('Failed to fetch received invites', error);
-      }
-    };
+  const fetchReceivedInvites = async () => {
+    try {
+      const response = await axiosInstance.get('/api/incoming_requests');
+      setInvites(response.data.invites);
+    } catch (error) {
+      console.error('Failed to fetch received invites', error);
+    }
+  };
 
-    fetchReceivedInvites();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchReceivedInvites();
+    }, [])
+  );
 
   const handleAccept = async (inviteId) => {
     try {
-      await axiosInstance.post(`/accept-invite/${inviteId}`);
+      await axiosInstance.post(`/accept_invite/${inviteId}`);
       setInvites(invites.filter(invite => invite.id !== inviteId));
     } catch (error) {
       console.error('Failed to accept invite', error);
@@ -70,7 +69,7 @@ export const ReceivedInvitesPage = () => {
 
   const handleReject = async (inviteId) => {
     try {
-      await axiosInstance.post(`/reject-invite/${inviteId}`);
+      await axiosInstance.post(`/reject_invite/${inviteId}`);
       setInvites(invites.filter(invite => invite.id !== inviteId));
     } catch (error) {
       console.error('Failed to reject invite', error);
@@ -87,10 +86,7 @@ export const ReceivedInvitesPage = () => {
           <View style={styles.userCard}>
             <Image source={{ uri: item.profilePicture }} style={styles.profileImage} />
             <View style={styles.userInfo}>
-              <Text style={styles.userName}>{item.name}</Text>
-              <Text style={styles.userAttribute}>Email: {item.email}</Text>
-              <Text style={styles.userAttribute}>Phone: {item.phone}</Text>
-              <Text style={styles.userAttribute}>Address: {item.address}</Text>
+              <Text style={styles.userName}>{item.requester_display_name}</Text>
               <View style={styles.buttonContainer}>
                 <Button title="Accept" onPress={() => handleAccept(item.id)} />
                 <Button title="Reject" onPress={() => handleReject(item.id)} />

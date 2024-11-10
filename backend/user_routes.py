@@ -112,8 +112,12 @@ def find_compatible_users_with_skills(user_id):
             users_dict[user.user_id] = {
                 'user_id': user.user_id,
                 'display_name': user.display_name,
-                'matching_skills': []
-            }
+                'matching_skills': [],
+                'matching_skills_count': 0
+        } 
+        else:
+            users_dict[user.user_id]['matching_skills_count'] += 1
+
         users_dict[user.user_id]['matching_skills'].append({
             'skill_id': skill.skill_id,
             'skill_name': skill.skill_name,
